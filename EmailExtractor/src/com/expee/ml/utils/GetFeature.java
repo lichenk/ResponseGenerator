@@ -55,14 +55,15 @@ public class GetFeature {
     }
     Map<String, Integer> wordMap = new HashMap<String, Integer>();
     int idx = 0;
+    writer.write("Length of email by bytes, Length of email by words, Number of question marks, Number of question words, Number of formal words, ");
     for (Map.Entry<String, Integer> entry: wordCount.entrySet()) {
       if (entry.getValue() >= MIN_COUNT) {
-        writer.write(entry.getKey() + " ");
+        writer.write(entry.getKey() + ", ");
         wordMap.put(entry.getKey(), idx);
         idx++;
       }
     }
-    writer.write("\n");
+    writer.write(" Number of replies this email has\n");
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, writer, email);
     }
@@ -108,22 +109,21 @@ public class GetFeature {
       }
     }
     //Message length (bytes)
-    writer.write(msg.length() + " ");
+    writer.write(msg.length() + ", ");
     // Message length (words)
-    writer.write(numWords + " ");
+    writer.write(numWords + ", ");
     // Number of question marks
-    writer.write(numQuestionMarks + " ");
+    writer.write(numQuestionMarks + ", ");
     // Number of formal words:
-    writer.write(numFormalWords + " ");
+    writer.write(numFormalWords + ", ");
     // Number of iterrogative words
-    writer.write(numQuestionWords + " ");
+    writer.write(numQuestionWords + ", ");
     // Bag of words
     for (int i = 0; i < bagOfWords.length; i++) {
-      writer.write(bagOfWords[i] + " ");
+      writer.write(bagOfWords[i] + ", ");
     }
     // Number of replies this email has
-    writer.write(email.getChildren().size() + " ");
-    writer.write("\n");
+    writer.write(String.valueOf(email.getChildren().size()));
     writer.write("\n");
   }
 }
