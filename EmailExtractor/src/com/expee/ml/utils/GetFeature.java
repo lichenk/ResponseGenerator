@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class GetFeature {
-  private static final int MIN_COUNT = 10;
+  private static final int MIN_COUNT = 1000;
   public static void makeEmailSetFeatures(Set<Email> emails, String OUTPUT) throws IOException {
     File fold = new File(OUTPUT);
     fold.delete();
