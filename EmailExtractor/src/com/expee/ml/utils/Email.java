@@ -81,10 +81,11 @@ public class Email {
   public boolean equals(Object o) {
     if (o instanceof Email) {
       Email email = (Email) o;
-      return nullEqual(text, email.text) && 
-          nullEqual(subject, email.subject) && 
+      return nullEqual(subject, email.subject) && 
           nullEqual(sender, email.sender) && 
-          nullEqual(date, email.date);
+          nullEqual(date, email.date) &&
+          nullEqual(text.length(), email.text.length()) &&
+          nullEqual(text, email.text);
     } else {
       return false;
     }

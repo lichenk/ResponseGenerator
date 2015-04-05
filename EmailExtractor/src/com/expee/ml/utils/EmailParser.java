@@ -1,11 +1,11 @@
 package com.expee.ml.utils;
 
+import java.util.ArrayList;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
+import java.io.IOException;
 import java.util.List;
 import java.util.Set;
 
@@ -15,8 +15,8 @@ public class EmailParser {
     return line.contains("----") && line.contains("Original Message");
   }
   
-  public static List<Email> parseEmails(File file) throws IOException {
-    List<Email> emails = new ArrayList<Email>();
+  public static ArrayList<Email> parseEmails(File file) throws IOException {
+    ArrayList<Email> emails = new ArrayList<Email>();
     boolean first = true;
     
     List<String> lines = new ArrayList<String>();
@@ -25,9 +25,6 @@ public class EmailParser {
     while ((nextline = in.readLine()) != null) {
       if (isEmailDelim(nextline)) {
         Email email = new Email(lines, first);
-        if (emails.size() > 0) {
-          email.addChild(emails.get(emails.size() - 1));
-        }
         emails.add(email);
         lines.clear();
         first = false;

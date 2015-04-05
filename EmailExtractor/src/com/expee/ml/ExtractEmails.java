@@ -1,45 +1,66 @@
 package com.expee.ml;
 
+import java.util.ArrayList;
 import java.io.File;
+import java.util.HashMap;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Map;
 
 import com.expee.ml.utils.Email;
 import com.expee.ml.utils.EmailParser;
 import com.expee.ml.utils.GetFeature;
 
 public class ExtractEmails {
-  private static final String BASE_DIR = "/home/usert/enronsmall";
+  private static final String BASE_DIR = "/Users/Ananya/Downloads/enron/maildir";
   private static final String OUTPUT = "EmailData.csv";
+
+  public static void addDirectedEdge(Map<Email, Email> emails, Email parent, Email child) {
+    emails.get(parent).addChild(emails.get(child));
+  }
+
+  public static void updateChildren(Map<Email, Email> emails, ArrayList<Email> emailChain) {
+    for (int i = emailChain.size() - 1; i > 0; i--) {
+      addDirectedEdge(emails, emailChain.get(i), emailChain.get(i - 1));
+    }
+  }
   
   public static void extract(String dir, String output) throws IOException {
     File base = new File(dir);
 
-    Set<Email> emails = new HashSet<Email>();
+    // This might seem like a hack, but basically an email's contents is used as a hashcode
+    // for a specific instance of an email. We don't want references to different instances
+    // representing the same email to be floating around.
+    Map<Email, Email> emails = new HashMap<Email, Email>();
     for (File user : base.listFiles()) {
       if (!user.isDirectory()) continue;
       
       for (File folder : user.listFiles()) {
         if (!folder.isDirectory()) continue;
         
-        for (File email : folder.listFiles()) {
-          if (!email.isFile()) continue;
-          
-          emails.addAll(EmailParser.parseEmails(email));
+        for (File emailFile : folder.listFiles()) {
+          if (!emailFile.isFile()) continue;
+
+          ArrayList<Email> emailChain = EmailParser.parseEmails(emailFile);
+          for (Email email : emailChain) {
+            if (!emails.containsKey(email)) {
+              emails.put(email, email);
+            }
+          }
+          updateChildren(emails, emailChain);
         }
       }
       System.out.println(user.getName() + " " + emails.size());
     }
-    for (Email email : emails) {
+    for (Email email : emails.values()) {
       GetFeature.printEmailFeatures(email);
     }
   }
   
   public static void main(String[] args) throws Exception {
-    // ExtractEmails.extract(BASE_DIR, OUTPUT);
-    for (Email x : EmailParser.parseEmails(new File("/Users/Ananya/Desktop/127"))) {
-      System.out.println(x);
-    }
+    ExtractEmails.extract(BASE_DIR, OUTPUT);
+    // for (Email x : EmailParser.parseEmails(new File("/Users/Ananya/Desktop/127"))) {
+    //   System.out.println(x);
+    // }
   }
 }
