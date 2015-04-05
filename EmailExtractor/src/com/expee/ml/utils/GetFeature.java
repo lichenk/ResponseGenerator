@@ -63,7 +63,7 @@ public class GetFeature {
     for (String word : formalWordArray) {
       formalWordSet.add(word);
     }
-    System.out.println("Has a reply: "+ (email.getChild() != null));
+    System.out.println("Has a reply: "+ (email.getChildren().size() != 0));
     String msg = email.getText();
     System.out.println("Message length (bytes): " + msg.length());
     String[] wordArray = msg.split("\\s");
