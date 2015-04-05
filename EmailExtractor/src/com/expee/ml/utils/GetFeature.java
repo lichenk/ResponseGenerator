@@ -33,7 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class GetFeature {
-  private static final int MIN_COUNT = 1000;
+  private static final int MIN_COUNT = 10;
 
   private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
       "Could", "Would", "Who", "When", "Where", "What", 
@@ -50,10 +50,12 @@ public class GetFeature {
       String[] wordArray = msg.split("\\s");
       for (String word: wordArray) {
         String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
-        if (wordCount.containsKey(strippedLowerWord)) {
-          wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
-        } else {
-          wordCount.put(strippedLowerWord, 1);
+        if (strippedLowerWord.length() > 0) {
+          if (wordCount.containsKey(strippedLowerWord)) {
+            wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
+          } else {
+            wordCount.put(strippedLowerWord, 1);
+          }
         }
       }
     }
@@ -71,7 +73,7 @@ public class GetFeature {
       }
     }
     
-    writer.println("Num Replies");
+    writer.println("Num Replies, Word Length of Reply");
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, writer, email);
     }
@@ -85,6 +87,7 @@ public class GetFeature {
     String[] wordArray = msg.split("\\s");
     
     int numWords = wordArray.length;
+    email.setWordCount(numWords);
     int numQuestionMarks = 0;
     for (int i = 0; i < msg.length(); i++) {
       if (msg.charAt(i) == '?') {
@@ -112,7 +115,21 @@ public class GetFeature {
         bagOfWords[wordMap.get(strippedLowerWord)]++;
       }
     }
-    
+    Set<Email> children = email.getChildren();
+    int numChildren = children.size();
+    int averageChildrenSize = 0;
+    if (numChildren > 0) {
+      for (Email child: children) {
+        int numWordsInChild = child.getWordCount();
+        if (numWordsInChild == -1) {
+          numWordsInChild = child.getText().split("\\s").length;
+          child.setWordCount(numWordsInChild);
+        }
+        averageChildrenSize += numWordsInChild;
+      }
+      averageChildrenSize /= numChildren;
+    }
+
     //Message length (bytes)
     writer.print(msg.length() + ",");
     // Message length (words)
@@ -128,6 +145,7 @@ public class GetFeature {
       writer.print(bagOfWords[i] + ",");
     }
     // Number of replies this email has
-    writer.println(email.getChildren().size());
+    writer.print(numChildren + ",");
+    writer.println(averageChildrenSize);
   }
 }
