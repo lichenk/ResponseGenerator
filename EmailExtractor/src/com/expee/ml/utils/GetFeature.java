@@ -21,24 +21,29 @@ Metadata features:
 */
 package com.expee.ml.utils;
 
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 public class GetFeature {
-  private static final int MIN_COUNT = 10;
-  public static void makeEmailSetFeatures(Set<Email> emails, String OUTPUT) throws IOException {
-    File fold = new File(OUTPUT);
-    fold.delete();
-    File file = new File(OUTPUT);
-    file.createNewFile();
-    FileWriter filewriter = new FileWriter(file,true);
-    BufferedWriter writer = new BufferedWriter(filewriter);
+  private static final int MIN_COUNT = 1000;
+  
+  private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
+      "Could", "Would", "Who", "When", "Where", "What", 
+      "Why", "How", "Is", "Are", "Will", "May", "Might"));
+  private static final Set<String> FORMAL_SET = new HashSet<String>(Arrays.asList(
+      "Yours", "Sincerely", "Sir", "Regards"));
+  
+  public static void makeEmailSetFeatures(Set<Email> emails, String output) throws IOException {
+    PrintWriter writer = new PrintWriter(new FileWriter(new File(output), true));
+    
     Map<String, Integer> wordCount = new HashMap<String, Integer>();
     for (Email email: emails) {
       String msg = email.getText();
@@ -47,44 +52,38 @@ public class GetFeature {
         String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
         if (wordCount.containsKey(strippedLowerWord)) {
           wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
-        }
-        else {
+        } else {
           wordCount.put(strippedLowerWord, 1);
         }
       }
     }
+    
+    System.out.println("Done making count map");
+    
     Map<String, Integer> wordMap = new HashMap<String, Integer>();
     int idx = 0;
-    writer.write("Length of email by bytes, Length of email by words, Number of question marks, Number of question words, Number of formal words, ");
-    for (Map.Entry<String, Integer> entry: wordCount.entrySet()) {
+    writer.print("Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,");
+    for (Entry<String, Integer> entry : wordCount.entrySet()) {
       if (entry.getValue() >= MIN_COUNT) {
-        writer.write(entry.getKey() + ", ");
+        writer.print(entry.getKey() + ",");
         wordMap.put(entry.getKey(), idx);
         idx++;
       }
     }
-    writer.write(" Number of replies this email has\n");
+    
+    writer.println("Num Replies");
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, writer, email);
     }
     writer.flush();
     writer.close();
   }
+  
   public static void printEmailFeatures(
-      Map<String, Integer> wordMap, BufferedWriter writer, Email email)  throws IOException {
-    String[] questionWordArray = {"Could", "Would", "Who", "When", "Where", 
-        "What", "Why", "How", "Is", "Are", "Will", "May", "Might"};
-    String[] formalWordArray = {"Yours", "Sincerely", "Sir", "Regards"};
-    HashSet<String> questionWordSet = new HashSet<String>();
-    for (String word : questionWordArray) {
-      questionWordSet.add(word);
-    }
-    HashSet<String> formalWordSet = new HashSet<String>();
-    for (String word : formalWordArray) {
-      formalWordSet.add(word);
-    }
+      Map<String, Integer> wordMap, PrintWriter writer, Email email)  throws IOException {
     String msg = email.getText();
     String[] wordArray = msg.split("\\s");
+    
     int numWords = wordArray.length;
     int numQuestionMarks = 0;
     for (int i = 0; i < msg.length(); i++) {
@@ -92,42 +91,43 @@ public class GetFeature {
         numQuestionMarks++;
       }
     }
+    
     int numQuestionWords = 0;
     int numFormalWords = 0;
     int[] bagOfWords = new int[wordMap.size()];
-    for (int i = 0; i < bagOfWords.length; i++) {
-      bagOfWords[i] = 0;
-    }
+    
     for (String word : wordArray) {
       String strippedWord = word.replaceAll("[^\\w]","");
-      if (word.length() == 0) continue;
       String strippedLowerWord = strippedWord.toLowerCase();
-      if (questionWordSet.contains(strippedWord)) {
+      
+      if (strippedLowerWord.length() == 0) continue;
+      
+      if (QUESTION_SET.contains(strippedWord)) {
         numQuestionWords++;
       }
-      if (formalWordSet.contains(strippedWord)) {
+      if (FORMAL_SET.contains(strippedWord)) {
         numFormalWords++;
       }
       if (wordMap.containsKey(strippedLowerWord)) {
         bagOfWords[wordMap.get(strippedLowerWord)]++;
       }
     }
+    
     //Message length (bytes)
-    writer.write(msg.length() + ", ");
+    writer.print(msg.length() + ",");
     // Message length (words)
-    writer.write(numWords + ", ");
+    writer.print(numWords + ",");
     // Number of question marks
-    writer.write(numQuestionMarks + ", ");
+    writer.print(numQuestionMarks + ",");
     // Number of formal words:
-    writer.write(numFormalWords + ", ");
-    // Number of iterrogative words
-    writer.write(numQuestionWords + ", ");
+    writer.print(numFormalWords + ",");
+    // Number of interrogative words
+    writer.print(numQuestionWords + ",");
     // Bag of words
     for (int i = 0; i < bagOfWords.length; i++) {
-      writer.write(bagOfWords[i] + ", ");
+      writer.print(bagOfWords[i] + ",");
     }
     // Number of replies this email has
-    writer.write(String.valueOf(email.getChildren().size()));
-    writer.write("\n");
+    writer.println(email.getChildren().size());
   }
 }
