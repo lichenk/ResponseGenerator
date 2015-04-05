@@ -51,13 +51,11 @@ public class ExtractEmails {
       }
       System.out.println(user.getName() + " " + emails.size());
     }
+    System.out.println("Done?");
     GetFeature.makeEmailSetFeatures(emails.keySet(), OUTPUT);
   }
   
   public static void main(String[] args) throws Exception {
     ExtractEmails.extract(BASE_DIR, OUTPUT);
-    // for (Email x : EmailParser.parseEmails(new File("/Users/Ananya/Desktop/127"))) {
-    //   System.out.println(x);
-    // }
   }
 }

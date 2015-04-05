@@ -70,7 +70,7 @@ public class Email {
   }
   
   private boolean nullEqual(Object a, Object b) {
-    return a == b || a.equals(b);
+    return (a != null && b != null && a.equals(b)) || (a == b);
   }
 
   public String toString() {

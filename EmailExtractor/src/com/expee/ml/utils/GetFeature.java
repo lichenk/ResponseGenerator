@@ -67,9 +67,13 @@ public class GetFeature {
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, writer, email);
     }
+    writer.flush();
+    writer.close();
   }
-  public static void printEmailFeatures(Map<String, Integer> wordMap, BufferedWriter writer, Email email)  throws IOException {
-    String[] questionWordArray = {"Could", "Would", "Who", "When", "Where", "What", "Why", "How", "Is", "Are", "Will", "May", "Might"};
+  public static void printEmailFeatures(
+      Map<String, Integer> wordMap, BufferedWriter writer, Email email)  throws IOException {
+    String[] questionWordArray = {"Could", "Would", "Who", "When", "Where", 
+        "What", "Why", "How", "Is", "Are", "Will", "May", "Might"};
     String[] formalWordArray = {"Yours", "Sincerely", "Sir", "Regards"};
     HashSet<String> questionWordSet = new HashSet<String>();
     for (String word : questionWordArray) {
