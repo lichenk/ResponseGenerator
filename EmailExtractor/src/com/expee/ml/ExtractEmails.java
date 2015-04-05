@@ -1,10 +1,9 @@
 package com.expee.ml;
 
-import java.util.ArrayList;
 import java.io.File;
-import java.util.HashMap;
 import java.io.IOException;
-import java.util.List;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.expee.ml.utils.Email;
@@ -52,9 +51,7 @@ public class ExtractEmails {
       }
       System.out.println(user.getName() + " " + emails.size());
     }
-    for (Email email : emails.values()) {
-      GetFeature.printEmailFeatures(email);
-    }
+    GetFeature.makeEmailSetFeatures(emails.keySet(), OUTPUT);
   }
   
   public static void main(String[] args) throws Exception {
