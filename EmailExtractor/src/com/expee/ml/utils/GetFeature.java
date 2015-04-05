@@ -1,13 +1,15 @@
 /*
 Input: Email message
-Output: Features, which are:
-1. Whether this email has a reply
-2. Length of email (bytes)
-3. Length of email (words)
-4. Number of '?'
-5. Number of questioning words (like "Who Why How When Where")
-6. Number of "formal" words. (like "Sir", "Yours sincerely")
-7. Bag of words, listed in alphabetical order
+Output:
+A) Bag of words, ordered by index in the vector
+B) For each email, outputs a vector of
+1. Length of email (bytes)
+2. Length of email (words)
+3. Number of '?'
+4. Number of questioning words (like "Who Why How When Where")
+5. Number of "formal" words. (like "Sir", "Yours sincerely")
+6. Bag of words, listed in order of the bag of words given.
+7. Number of replies this email has
 
 Other things we can do:
 Metadata features:
@@ -25,6 +27,8 @@ import java.util.regex.*;
 import java.io.*;
 public class GetFeature {
   public static void makeEmailSetFeatures(Set<Email> emails) {
+    System.out.println("Length of email (bytes), Length of email (words), Number of ?, Number of questioning words, Number of formal words, Bag of words, Has a reply");
+    System.out.println("Bag of words starts here:");
     int MIN_COUNT = 10;
     Map<String, Integer> wordCount = new HashMap<String, Integer>();
     for (Email email: emails) {
@@ -44,10 +48,13 @@ public class GetFeature {
     int idx = 0;
     for (Map.Entry<String, Integer> entry: wordCount.entrySet()) {
       if (entry.getValue() >= MIN_COUNT) {
+        System.out.print(entry.getKey() + " ");
         wordMap.put(entry.getKey(), idx);
         idx++;
       }
     }
+    System.out.println("");
+    System.out.println("");
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, email);
     }
@@ -63,19 +70,15 @@ public class GetFeature {
     for (String word : formalWordArray) {
       formalWordSet.add(word);
     }
-    System.out.println("Has a reply: "+ (email.getChildren().size() != 0));
     String msg = email.getText();
-    System.out.println("Message length (bytes): " + msg.length());
     String[] wordArray = msg.split("\\s");
     int numWords = wordArray.length;
-    System.out.println("Message length (words): " + numWords);
     int numQuestionMarks = 0;
     for (int i = 0; i < msg.length(); i++) {
       if (msg.charAt(i) == '?') {
         numQuestionMarks++;
       }
     }
-    System.out.println("Number of question marks: " + numQuestionMarks);
     int numQuestionWords = 0;
     int numFormalWords = 0;
     int[] bagOfWords = new int[wordMap.size()];
@@ -96,12 +99,23 @@ public class GetFeature {
         bagOfWords[wordMap.get(strippedLowerWord)]++;
       }
     }
-    System.out.println("Number of formal words: " + numFormalWords);
-    System.out.println("Number of iterrogative words: " + numQuestionWords);
-    System.out.println("Bag of words: Words, Word count");
+    //Message length (bytes)
+    System.out.print(msg.length() + " ");
+    // Message length (words)
+    System.out.print(numWords + " ");
+    // Number of question marks
+    System.out.print(numQuestionMarks + " ");
+    // Number of formal words:
+    System.out.print(numFormalWords + " ");
+    // Number of iterrogative words
+    System.out.print(numQuestionWords + " ");
+    // Bag of words
     for (int i = 0; i < bagOfWords.length; i++) {
       System.out.print(bagOfWords[i] + " ");
     }
+    // Number of replies this email has
+    System.out.print(email.getChildren().size() + " ");
+    System.out.println("");
     System.out.println("");
   }
 }
