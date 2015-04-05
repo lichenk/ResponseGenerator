@@ -24,59 +24,84 @@ import java.util.*;
 import java.util.regex.*;
 import java.io.*;
 public class GetFeature {
-    public static void printEmailFeatures(Email email) {
-        String[] questionWordArray = {"Could", "Would", "Who", "When", "Where", "What", "Why", "How", "Is", "Are", "Will", "May", "Might"};
-        String[] formalWordArray = {"Yours", "Sincerely", "Sir", "Regards"};
-        HashSet<String> questionWordSet = new HashSet<>();
-        for (int i = 0; i < questionWordArray.length; i++) {
-            questionWordSet.add(questionWordArray[i]);
+  public static void makeEmailSetFeatures(Set<Email> emails) {
+    int MIN_COUNT = 10;
+    Map<String, Integer> wordCount = new HashMap<String, Integer>();
+    for (Email email: emails) {
+      String msg = email.getText();
+      String[] wordArray = msg.split("\\s");
+      for (String word: wordArray) {
+        String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
+        if (wordCount.containsKey(strippedLowerWord)) {
+          wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
         }
-        HashSet<String> formalWordSet = new HashSet<>();
-        for (int i = 0; i < formalWordArray.length; i++) {
-            formalWordSet.add(formalWordArray[i]);
+        else {
+          wordCount.put(strippedLowerWord, 1);
         }
-        System.out.println("Has a reply: "+ (email.getChild() != null));
-        String msg = email.getText();
-        System.out.println("Message length (bytes): " + msg.length());
-        String[] wordArray = msg.split("\\s");
-        int numWords = wordArray.length;
-        System.out.println("Message length (words): " + numWords);
-        int numQuestionMarks = 0;
-        for (int i = 0; i < msg.length(); i++) {
-            if (msg.charAt(i) == '?') {
-                numQuestionMarks++;
-            }
-        }
-        System.out.println("Number of question marks: " + numQuestionMarks);
-        int numQuestionWords = 0;
-        int numFormalWords = 0;
-        HashMap<String, Integer> bagOfWords = new HashMap<>();
-        for (int i = 0; i < numWords; i++) {
-            String word = wordArray[i];
-            String strippedWord = word.replaceAll("[^\\w]","");
-            String strippedLowerWord = strippedWord.toLowerCase();
-            if (questionWordSet.contains(strippedWord)) {
-                numQuestionWords++;
-            }
-            if (formalWordSet.contains(strippedWord)) {
-                numFormalWords++;
-            }
-            if (bagOfWords.containsKey(strippedLowerWord)) {
-                bagOfWords.put(strippedLowerWord, bagOfWords.get(strippedLowerWord)+1);
-            }
-            else {
-                bagOfWords.put(strippedLowerWord, 1);
-            }
-        }
-        System.out.println("Number of formal words: " + numFormalWords);
-        System.out.println("Number of iterrogative words: " + numQuestionWords);
-        System.out.println("Bag of words: Words, Word count");
-        Iterator it = bagOfWords.entrySet().iterator();
-        while (it.hasNext()) {
-            Map.Entry wordCountPair = (Map.Entry)it.next();
-            System.out.println(wordCountPair.getKey() + " " + wordCountPair.getValue());
-            it.remove();
-        }
-        System.out.println("");
+      }
     }
+    Map<String, Integer> wordMap = new HashMap<String, Integer>();
+    int idx = 0;
+    for (Map.Entry<String, Integer> entry: wordCount.entrySet()) {
+      if (entry.getValue() >= MIN_COUNT) {
+        wordMap.put(entry.getKey(), idx);
+        idx++;
+      }
+    }
+    for (Email email : emails) {
+      GetFeature.printEmailFeatures(wordMap, email);
+    }
+  }
+  public static void printEmailFeatures(Map<String, Integer> wordMap, Email email) {
+    String[] questionWordArray = {"Could", "Would", "Who", "When", "Where", "What", "Why", "How", "Is", "Are", "Will", "May", "Might"};
+    String[] formalWordArray = {"Yours", "Sincerely", "Sir", "Regards"};
+    HashSet<String> questionWordSet = new HashSet<String>();
+    for (String word : questionWordArray) {
+      questionWordSet.add(word);
+    }
+    HashSet<String> formalWordSet = new HashSet<String>();
+    for (String word : formalWordArray) {
+      formalWordSet.add(word);
+    }
+    System.out.println("Has a reply: "+ (email.getChild() != null));
+    String msg = email.getText();
+    System.out.println("Message length (bytes): " + msg.length());
+    String[] wordArray = msg.split("\\s");
+    int numWords = wordArray.length;
+    System.out.println("Message length (words): " + numWords);
+    int numQuestionMarks = 0;
+    for (int i = 0; i < msg.length(); i++) {
+      if (msg.charAt(i) == '?') {
+        numQuestionMarks++;
+      }
+    }
+    System.out.println("Number of question marks: " + numQuestionMarks);
+    int numQuestionWords = 0;
+    int numFormalWords = 0;
+    int[] bagOfWords = new int[wordMap.size()];
+    for (int i = 0; i < bagOfWords.length; i++) {
+      bagOfWords[i] = 0;
+    }
+    for (String word : wordArray) {
+      String strippedWord = word.replaceAll("[^\\w]","");
+      if (word.length() == 0) continue;
+      String strippedLowerWord = strippedWord.toLowerCase();
+      if (questionWordSet.contains(strippedWord)) {
+        numQuestionWords++;
+      }
+      if (formalWordSet.contains(strippedWord)) {
+        numFormalWords++;
+      }
+      if (wordMap.containsKey(strippedLowerWord)) {
+        bagOfWords[wordMap.get(strippedLowerWord)]++;
+      }
+    }
+    System.out.println("Number of formal words: " + numFormalWords);
+    System.out.println("Number of iterrogative words: " + numQuestionWords);
+    System.out.println("Bag of words: Words, Word count");
+    for (int i = 0; i < bagOfWords.length; i++) {
+      System.out.print(bagOfWords[i] + " ");
+    }
+    System.out.println("");
+  }
 }
