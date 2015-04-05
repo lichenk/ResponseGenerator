@@ -31,7 +31,7 @@ public class ExtractEmails {
       }
       System.out.println(user.getName() + " " + emails.size());
     }
-    GetFeature.makeEmailSetFeatures(emails);
+    GetFeature.makeEmailSetFeatures(emails, OUTPUT);
   }
   
   public static void main(String[] args) throws Exception {

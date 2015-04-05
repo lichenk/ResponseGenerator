@@ -26,10 +26,14 @@ import java.util.*;
 import java.util.regex.*;
 import java.io.*;
 public class GetFeature {
-  public static void makeEmailSetFeatures(Set<Email> emails) {
-    System.out.println("Length of email (bytes), Length of email (words), Number of ?, Number of questioning words, Number of formal words, Bag of words, Has a reply");
-    System.out.println("Bag of words starts here:");
-    int MIN_COUNT = 10;
+  private static final int MIN_COUNT = 10;
+  public static void makeEmailSetFeatures(Set<Email> emails, String OUTPUT) throws IOException {
+    File fold = new File(OUTPUT);
+    fold.delete();
+    File file = new File(OUTPUT);
+    file.createNewFile();
+    FileWriter filewriter = new FileWriter(file,true);
+    BufferedWriter writer = new BufferedWriter(filewriter);
     Map<String, Integer> wordCount = new HashMap<String, Integer>();
     for (Email email: emails) {
       String msg = email.getText();
@@ -48,18 +52,17 @@ public class GetFeature {
     int idx = 0;
     for (Map.Entry<String, Integer> entry: wordCount.entrySet()) {
       if (entry.getValue() >= MIN_COUNT) {
-        System.out.print(entry.getKey() + " ");
+        writer.write(entry.getKey() + " ");
         wordMap.put(entry.getKey(), idx);
         idx++;
       }
     }
-    System.out.println("");
-    System.out.println("");
+    writer.write("\n");
     for (Email email : emails) {
-      GetFeature.printEmailFeatures(wordMap, email);
+      GetFeature.printEmailFeatures(wordMap, writer, email);
     }
   }
-  public static void printEmailFeatures(Map<String, Integer> wordMap, Email email) {
+  public static void printEmailFeatures(Map<String, Integer> wordMap, BufferedWriter writer, Email email)  throws IOException {
     String[] questionWordArray = {"Could", "Would", "Who", "When", "Where", "What", "Why", "How", "Is", "Are", "Will", "May", "Might"};
     String[] formalWordArray = {"Yours", "Sincerely", "Sir", "Regards"};
     HashSet<String> questionWordSet = new HashSet<String>();
@@ -100,22 +103,22 @@ public class GetFeature {
       }
     }
     //Message length (bytes)
-    System.out.print(msg.length() + " ");
+    writer.write(msg.length() + " ");
     // Message length (words)
-    System.out.print(numWords + " ");
+    writer.write(numWords + " ");
     // Number of question marks
-    System.out.print(numQuestionMarks + " ");
+    writer.write(numQuestionMarks + " ");
     // Number of formal words:
-    System.out.print(numFormalWords + " ");
+    writer.write(numFormalWords + " ");
     // Number of iterrogative words
-    System.out.print(numQuestionWords + " ");
+    writer.write(numQuestionWords + " ");
     // Bag of words
     for (int i = 0; i < bagOfWords.length; i++) {
-      System.out.print(bagOfWords[i] + " ");
+      writer.write(bagOfWords[i] + " ");
     }
     // Number of replies this email has
-    System.out.print(email.getChildren().size() + " ");
-    System.out.println("");
-    System.out.println("");
+    writer.write(email.getChildren().size() + " ");
+    writer.write("\n");
+    writer.write("\n");
   }
 }
