@@ -11,7 +11,7 @@ import com.expee.ml.utils.EmailParser;
 import com.expee.ml.utils.GetFeature;
 
 public class ExtractEmails {
-  private static final String BASE_DIR = "I:\\Documents\\EnronData\\maildir";
+  private static final String BASE_DIR = "/home/usert/enronsmall";
   private static final String OUTPUT = "EmailData.csv";
 
   public static void addDirectedEdge(Map<Email, Email> emails, Email parent, Email child) {

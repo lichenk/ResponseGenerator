@@ -34,7 +34,7 @@ import java.util.Set;
 
 public class GetFeature {
   private static final int MIN_COUNT = 1000;
-  
+
   private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
       "Could", "Would", "Who", "When", "Where", "What", 
       "Why", "How", "Is", "Are", "Will", "May", "Might"));
