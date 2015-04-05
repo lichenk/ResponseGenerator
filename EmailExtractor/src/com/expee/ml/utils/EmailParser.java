@@ -26,7 +26,7 @@ public class EmailParser {
       if (isEmailDelim(nextline)) {
         Email email = new Email(lines, first);
         if (emails.size() > 0) {
-          email.setParent(emails.get(emails.size() - 1));
+          email.setChild(emails.get(emails.size() - 1));
         }
         emails.add(email);
         lines.clear();

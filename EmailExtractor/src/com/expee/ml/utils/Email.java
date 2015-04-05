@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 public class Email {
-  private Email parent;
+  private Email child;
   
   private String text;
   private String subject;
@@ -40,11 +40,19 @@ public class Email {
     
     this.text = textBuf.toString();
   }
-  
-  public void setParent(Email parent) {
-    this.parent = parent;
+
+  public Email getChild() {
+    return this.child;
   }
   
+  public void setChild(Email child) {
+    this.child = child;
+  }
+
+  public String getText() {
+    return this.text;
+  }
+
   private int nullCode(Object o) {
     return (o == null) ? 0 : o.hashCode();
   }
@@ -62,7 +70,7 @@ public class Email {
   public boolean equals(Object o) {
     if (o instanceof Email) {
       Email email = (Email) o;
-      return nullEqual(parent, email.parent) && nullEqual(text, email.text) && 
+      return nullEqual(child, email.child) && nullEqual(text, email.text) && 
           nullEqual(subject, email.subject) && nullEqual(sender, email.sender) && 
           nullEqual(sender, email.sender) && nullEqual(receivers, email.receivers) &&
           nullEqual(date, email.date);

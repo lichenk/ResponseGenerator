@@ -7,9 +7,10 @@ import java.util.Set;
 
 import com.expee.ml.utils.Email;
 import com.expee.ml.utils.EmailParser;
+import com.expee.ml.utils.GetFeature;
 
 public class ExtractEmails {
-  private static final String BASE_DIR = "/Users/Peijin/Documents/EnronData/maildir";
+  private static final String BASE_DIR = "/home/usert/enronsmall";
   private static final String OUTPUT = "EmailData.csv";
   
   public static void extract(String dir, String output) throws IOException {
@@ -29,6 +30,9 @@ public class ExtractEmails {
         }
       }
       System.out.println(user.getName() + " " + emails.size());
+    }
+    for (Email email : emails) {
+      GetFeature.printEmailFeatures(email);
     }
   }
   
