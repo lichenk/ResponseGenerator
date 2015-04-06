@@ -14,6 +14,8 @@ public class Email {
   private String subject;
   
   private String sender;
+
+  private String to;
   
   private Date date;
   // wordCount is initialized to -1. It is set when computed in GetFeature to avoid recomputation.
@@ -32,10 +34,14 @@ public class Email {
     
     StringBuffer textBuf = new StringBuffer();
     for (String line : lines) {
-      if (line.contains("From:")) {
-        this.sender = line.substring(line.indexOf("From:") + "From:".length()).trim();
+      if (line.contains("From:") && line.contains("@")) {
+        this.sender = line;
       }
       
+      if (line.contains("To:") && line.contains("@")) {
+        this.to = line;
+      }
+
       if (line.contains("Subject:")) {
         this.subject = line.substring(line.indexOf("Subject:") + "Subject:".length()).trim();
         hitSubject = true;
@@ -49,7 +55,7 @@ public class Email {
       }
     }
     
-    this.text = textBuf.toString().trim();
+    this.text = textBuf.toString().trim().replaceAll("=20", " ");
     this.wordCount = -1;
   }
 
@@ -75,6 +81,14 @@ public class Email {
 
   public String getText() {
     return this.text;
+  }
+
+  public String getSender() {
+    return this.sender;
+  }
+
+  public String getTo() {
+    return this.to;
   }
 
   private int nullCode(Object o) {
