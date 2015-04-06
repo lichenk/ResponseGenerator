@@ -83,6 +83,10 @@ public class Email {
     return this.text;
   }
 
+  public String getSubject() {
+    return this.subject;
+  }
+
   public String getSender() {
     return this.sender;
   }

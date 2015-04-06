@@ -33,6 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class GetFeature {
+  private static final int MIN_COUNT = 1000;
   private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
       "Could", "Would", "Who", "When", "Where", "What", 
       "Why", "How", "Is", "Are", "Will", "May", "Might"));
@@ -48,19 +49,47 @@ public class GetFeature {
   public static void makeEmailSetFeatures(Set<Email> emails, String output) throws IOException {
     PrintWriter writer = new PrintWriter(new FileWriter(new File(output), true));
 
+    Map<String, Integer> wordCount = new HashMap<String, Integer>();
+    for (Email email: emails) {
+      String subject = email.getSubject();
+      if (subject == null) continue;
+      String[] wordArray = subject.split("\\s");
+      for (String word : wordArray) {
+        String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
+        if (strippedLowerWord.length() > 0 && wordCount.containsKey(strippedLowerWord)) {
+          wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
+        } else {
+          wordCount.put(strippedLowerWord, 1);
+        }
+      }
+    }
+    
+    System.out.println("Done making count map for subjects");
+
     writer.print("Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,");
     writer.print("Num Paragraphs,Paragraph Density,Num Recipients,Is Sender Enron,");
     writer.print("Num Meeting Words,Num Replyrelated words,Num Trigger Phrases,");
+
+    Map<String, Integer> wordMap = new HashMap<String, Integer>();
+    int idx = 0;
+    for (Entry<String, Integer> entry : wordCount.entrySet()) {
+      if (entry.getValue() >= MIN_COUNT) {
+        writer.print(entry.getKey() + ",");
+        wordMap.put(entry.getKey(), idx);
+        idx++;
+      }
+    }
     writer.println("Num Replies, Word Length of Reply");
+    int wordMapSize = wordMap.size();
     for (Email email : emails) {
-      GetFeature.printEmailFeatures(writer, email);
+      GetFeature.printEmailFeatures(wordMap, wordMapSize, writer, email);
     }
     writer.flush();
     writer.close();
   }
   
   public static void printEmailFeatures(
-      PrintWriter writer, Email email)  throws IOException {
+      Map<String, Integer> wordMap, int wordMapSize, PrintWriter writer, Email email)  throws IOException {
 
     String to = email.getTo();
     int numRecipients = 1;
@@ -143,6 +172,22 @@ public class GetFeature {
       averageChildrenSize /= numChildren;
     }
 
+    int[] bagOfWords = new int[wordMapSize];
+    for (int i = 0; i < wordMapSize; i++) {
+      bagOfWords[i] = 0;
+    }
+    String subject = email.getSubject();
+    if (subject != null) {
+      String[] subjectWordArray = subject.split("\\s");
+      for (String word : subjectWordArray) {
+        String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
+        if (wordMap.containsKey(strippedLowerWord)) {
+          bagOfWords[wordMap.get(strippedLowerWord)]++;
+        }
+      }
+    }
+
+
     //Message length (bytes)
     writer.print(msg.length() + ",");
     // Message length (words)
@@ -167,8 +212,13 @@ public class GetFeature {
     writer.print(numReplyWords + ",");
     // Number of trigger phrases
     writer.print(numPhrases + ",");
+    // Bag of words for subject
+    for (int i = 0; i < bagOfWords.length; i++) {
+      writer.print(bagOfWords[i] + ",");
+    }
     // Number of replies this email has
     writer.print(numChildren + ",");
+    // Average children size
     writer.println(averageChildrenSize);
   }
 }
