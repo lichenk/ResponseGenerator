@@ -32,35 +32,55 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
-public class GetFeature {
+public class OldGetFeature {
+  private static final int MIN_COUNT = 1000;
+
   private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
       "Could", "Would", "Who", "When", "Where", "What", 
       "Why", "How", "Is", "Are", "Will", "May", "Might"));
   private static final Set<String> FORMAL_SET = new HashSet<String>(Arrays.asList(
       "Yours", "Sincerely", "Sir", "Regards", "Madam"));
-  private static final Set<String> MEETING_SET = new HashSet<String>(Arrays.asList(
-      "reminder", "meeting", "location", "date", "time"));
-  private static final Set<String> REPLY_SET = new HashSet<String>(Arrays.asList(
-      "reply", "rsvp", "respond", "response", "acknowledge", "email"));
-  private static final String[] TRIGGER_PHRASE_ARRAY = {
-      "follow up", "let me know", "let us know", "feel free", "help us", "get back"};
   
   public static void makeEmailSetFeatures(Set<Email> emails, String output) throws IOException {
     PrintWriter writer = new PrintWriter(new FileWriter(new File(output), true));
-
-    writer.print("Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,");
-    writer.print("Num Paragraphs,Paragraph Density,Num Recipients,Is Sender Enron,");
-    writer.print("Num Meeting Words,Num Replyrelated words,Num Trigger Phrases,");
+    
+    Map<String, Integer> wordCount = new HashMap<String, Integer>();
+    for (Email email: emails) {
+      String msg = email.getText();
+      String[] wordArray = msg.split("\\s");
+      for (String word : wordArray) {
+        String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
+        if (strippedLowerWord.length() > 0 && wordCount.containsKey(strippedLowerWord)) {
+          wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
+        } else {
+          wordCount.put(strippedLowerWord, 1);
+        }
+      }
+    }
+    
+    System.out.println("Done making count map");
+    
+    Map<String, Integer> wordMap = new HashMap<String, Integer>();
+    int idx = 0;
+    writer.print("Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,Num Paragraphs,Paragraph Density,Num Recipients,Is Sender Enron,");
+    for (Entry<String, Integer> entry : wordCount.entrySet()) {
+      if (entry.getValue() >= MIN_COUNT) {
+        writer.print(entry.getKey() + ",");
+        wordMap.put(entry.getKey(), idx);
+        idx++;
+      }
+    }
+    
     writer.println("Num Replies, Word Length of Reply");
     for (Email email : emails) {
-      GetFeature.printEmailFeatures(writer, email);
+      OldGetFeature.printEmailFeatures(wordMap, writer, email);
     }
     writer.flush();
     writer.close();
   }
   
   public static void printEmailFeatures(
-      PrintWriter writer, Email email)  throws IOException {
+      Map<String, Integer> wordMap, PrintWriter writer, Email email)  throws IOException {
 
     String to = email.getTo();
     int numRecipients = 1;
@@ -98,34 +118,22 @@ public class GetFeature {
     
     int numQuestionWords = 0;
     int numFormalWords = 0;
-    int numMeetingWords = 0;
-    int numReplyWords = 0;
+    int[] bagOfWords = new int[wordMap.size()];
     
     for (String word : wordArray) {
       String strippedWord = word.replaceAll("[^\\w]","");
       String strippedLowerWord = strippedWord.toLowerCase();
       
       if (strippedLowerWord.length() == 0) continue;
-      // Preserve upper case to differentiate "Is...?" "Are you...?" from "...is..."
+      
       if (QUESTION_SET.contains(strippedWord)) {
         numQuestionWords++;
       }
-      // Preserve upper case to differentiate "Yours (truly)" from "(this is) yours"
       if (FORMAL_SET.contains(strippedWord)) {
         numFormalWords++;
       }
-      if (MEETING_SET.contains(strippedLowerWord)) {
-        numMeetingWords++;
-      }
-      if (REPLY_SET.contains(strippedLowerWord)) {
-        numReplyWords++;
-      }
-    }
-    String msglower = msg.toLowerCase();
-    int numPhrases = 0;
-    for (String phrase : TRIGGER_PHRASE_ARRAY) {
-      if (msglower.contains(phrase)) {
-        numPhrases++;
+      if (wordMap.containsKey(strippedLowerWord)) {
+        bagOfWords[wordMap.get(strippedLowerWord)]++;
       }
     }
     Set<Email> children = email.getChildren();
@@ -161,12 +169,10 @@ public class GetFeature {
     writer.print(numRecipients + ",");
     // Is sender domain from enron.com?
     writer.print(isEnron + ",");
-    // Meeting words (number)
-    writer.print(numMeetingWords + ",");
-    // Reply-related words
-    writer.print(numReplyWords + ",");
-    // Number of trigger phrases
-    writer.print(numPhrases + ",");
+    // Bag of words
+    for (int i = 0; i < bagOfWords.length; i++) {
+      writer.print(bagOfWords[i] + ",");
+    }
     // Number of replies this email has
     writer.print(numChildren + ",");
     writer.println(averageChildrenSize);
