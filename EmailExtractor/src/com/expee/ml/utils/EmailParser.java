@@ -12,6 +12,10 @@ public class EmailParser {
   private static boolean isEmailDelim(String line) {
     return line.contains("----") && line.contains("Original Message");
   }
+
+  private static boolean isInvalidLine(String line) {
+    return line.contains("----") && line.contains("Forwarded");
+  }
   
   public static ArrayList<Email> parseEmails(File file) throws IOException {
     ArrayList<Email> emails = new ArrayList<Email>();
@@ -21,6 +25,9 @@ public class EmailParser {
     BufferedReader in = new BufferedReader(new FileReader(file));
     String nextline;
     while ((nextline = in.readLine()) != null) {
+      if (isInvalidLine(nextline)) {
+        return new ArrayList<Email>();
+      }
       if (isEmailDelim(nextline)) {
         Email email = new Email(lines, first);
         emails.add(email);

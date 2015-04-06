@@ -33,7 +33,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 
 public class GetFeature {
-  private static final int MIN_COUNT = 1000;
+  private static final int MIN_COUNT = 200;
 
   private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
       "Could", "Would", "Who", "When", "Where", "What", 
@@ -42,18 +42,20 @@ public class GetFeature {
       "Yours", "Sincerely", "Sir", "Regards", "Madam"));
   
   public static void makeEmailSetFeatures(Set<Email> emails, String output) throws IOException {
-    PrintWriter writer = new PrintWriter(new FileWriter(new File(output), true));
+    PrintWriter writer = new PrintWriter(new File(output));
     
     Map<String, Integer> wordCount = new HashMap<String, Integer>();
     for (Email email: emails) {
       String msg = email.getText();
       String[] wordArray = msg.split("\\s");
       for (String word : wordArray) {
-        String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
-        if (strippedLowerWord.length() > 0 && wordCount.containsKey(strippedLowerWord)) {
-          wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
-        } else {
-          wordCount.put(strippedLowerWord, 1);
+        String strippedLowerWord = word.replaceAll("[^a-zA-Z]","").toLowerCase();
+        if (strippedLowerWord.length() > 3) {
+          if (strippedLowerWord.length() > 0 && wordCount.containsKey(strippedLowerWord)) {
+            wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
+          } else {
+            wordCount.put(strippedLowerWord, 1);
+          }
         }
       }
     }
@@ -71,7 +73,7 @@ public class GetFeature {
       }
     }
     
-    writer.println("Num Replies, Word Length of Reply");
+    writer.println("Has Reply, Num Replies, Word Length of Reply");
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, writer, email);
     }
@@ -142,6 +144,8 @@ public class GetFeature {
     for (int i = 0; i < bagOfWords.length; i++) {
       writer.print(bagOfWords[i] + ",");
     }
+    // Did the email have a reply
+    writer.print((numChildren>0) + ",");
     // Number of replies this email has
     writer.print(numChildren + ",");
     writer.println(averageChildrenSize);

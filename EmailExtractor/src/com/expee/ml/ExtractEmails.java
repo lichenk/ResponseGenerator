@@ -60,7 +60,7 @@ public class ExtractEmails {
     return emailFiles;
   }
 
-  // This code is buggy. It only goes down 3 levels, instead of recursing.
+  // TODO(Peijin): This code is buggy. It only goes down 3 levels, instead of recursing.
   public static List<File> getEmailFiles(String dir, int maxUsers) throws IOException {
     List<File> emailFiles = new ArrayList<File>();
     File base = new File(dir);
@@ -89,7 +89,8 @@ public class ExtractEmails {
 
   public static void main(String[] args) throws Exception {
     System.out.println("Getting email list");
-    List<File> emailFiles = getEmailFiles(BASE_DIR, 10);
+    // List<File> emailFiles = getLinearEmailFiles("../testsets/simple");
+    List<File> emailFiles = getEmailFiles(BASE_DIR, 20);
     System.out.println("Extracting email structure");
     Set<Email> emails = extractStructure(emailFiles);
     System.out.println("Making features");
