@@ -64,7 +64,7 @@ public class GetFeature {
     
     Map<String, Integer> wordMap = new HashMap<String, Integer>();
     int idx = 0;
-    writer.print("Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,");
+    writer.print("Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,Num Paragraphs,Paragraph Density,Num Recipients,Is Sender Enron,");
     for (Entry<String, Integer> entry : wordCount.entrySet()) {
       if (entry.getValue() >= MIN_COUNT) {
         writer.print(entry.getKey() + ",");
@@ -83,7 +83,30 @@ public class GetFeature {
   
   public static void printEmailFeatures(
       Map<String, Integer> wordMap, PrintWriter writer, Email email)  throws IOException {
+
+    String to = email.getTo();
+    int numRecipients = 1;
+    if (to != null) {
+      numRecipients = to.split("\\w@\\w").length - 1;
+    }
+
+    int isEnron = 0;
+    String sender = email.getSender();
+    if (sender != null && sender.toLowerCase().contains("@enron")) {
+      isEnron = 1;
+    }
     String msg = email.getText();
+    String[] paragraphArray = msg.split("\n\\w");
+    int numParagraphs = paragraphArray.length;
+    int paragraphDensity = 0;
+    for (String paragraph: paragraphArray) {
+      int numWordsInParagraph = paragraph.split("\\s").length;
+      paragraphDensity += numWordsInParagraph;
+    }
+    if (numParagraphs > 0) {
+      paragraphDensity /= numParagraphs;
+    }
+
     String[] wordArray = msg.split("\\s");
     
     int numWords = wordArray.length;
@@ -140,6 +163,14 @@ public class GetFeature {
     writer.print(numFormalWords + ",");
     // Number of interrogative words
     writer.print(numQuestionWords + ",");
+    // Number of paragraphs
+    writer.print(numParagraphs + ",");
+    // Paragraph density
+    writer.print(paragraphDensity + ",");
+    // Number of recipients
+    writer.print(numRecipients + ",");
+    // Is sender domain from enron.com?
+    writer.print(isEnron + ",");
     // Bag of words
     for (int i = 0; i < bagOfWords.length; i++) {
       writer.print(bagOfWords[i] + ",");
