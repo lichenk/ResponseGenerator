@@ -11,10 +11,13 @@ import java.util.Set;
 import com.expee.ml.utils.Email;
 import com.expee.ml.utils.EmailParser;
 import com.expee.ml.utils.GetFeature;
+import com.expee.ml.utils.OldGetFeature;
 
 public class ExtractEmails {
   private static final String BASE_DIR = "/Users/Ananya/Downloads/enron/maildir";
   private static final String OUTPUT = "EmailData.csv";
+  private static final boolean INBOX_ONLY = true; // Set to true to restrict to "inbox" folders
+  private static final boolean OLD_FEATURE = false; //Set to true for Bag of Words for email body
 
   private static void addDirectedEdge(Map<Email, Email> emails, Email parent, Email child) {
     emails.get(parent).addChild(emails.get(child));
@@ -71,7 +74,7 @@ public class ExtractEmails {
       
       for (File folder : user.listFiles()) {
         if (!folder.isDirectory()) continue;
-        if (!folder.getName().equals("inbox")) continue;
+        if (INBOX_ONLY && !folder.getName().equals("inbox")) continue;
         
         for (File emailFile : folder.listFiles()) {
           if (!emailFile.isFile() || emailFile.isHidden()) continue;
@@ -90,10 +93,15 @@ public class ExtractEmails {
   public static void main(String[] args) throws Exception {
     System.out.println("Getting email list");
     // List<File> emailFiles = getLinearEmailFiles("../testsets/simple");
-    List<File> emailFiles = getEmailFiles(BASE_DIR, 20);
+    List<File> emailFiles = getEmailFiles(BASE_DIR, 10);
     System.out.println("Extracting email structure");
     Set<Email> emails = extractStructure(emailFiles);
     System.out.println("Making features");
-    GetFeature.makeEmailSetFeatures(emails, OUTPUT);
+    if (OLD_FEATURE) {
+      OldGetFeature.makeEmailSetFeatures(emails, OUTPUT);
+    }
+    else {
+      GetFeature.makeEmailSetFeatures(emails, OUTPUT);
+    }
   }
 }
