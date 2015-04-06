@@ -50,7 +50,7 @@ public class GetFeature {
       String[] wordArray = msg.split("\\s");
       for (String word : wordArray) {
         String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
-        if (!strippedLowerWord.equals("") && wordCount.containsKey(strippedLowerWord)) {
+        if (strippedLowerWord.length() > 0 && wordCount.containsKey(strippedLowerWord)) {
           wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
         } else {
           wordCount.put(strippedLowerWord, 1);
@@ -71,7 +71,7 @@ public class GetFeature {
       }
     }
     
-    writer.println("Num Replies");
+    writer.println("Num Replies, Word Length of Reply");
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, writer, email);
     }
@@ -85,6 +85,7 @@ public class GetFeature {
     String[] wordArray = msg.split("\\s");
     
     int numWords = wordArray.length;
+    email.setWordCount(numWords);
     int numQuestionMarks = 0;
     for (int i = 0; i < msg.length(); i++) {
       if (msg.charAt(i) == '?') {
@@ -112,7 +113,21 @@ public class GetFeature {
         bagOfWords[wordMap.get(strippedLowerWord)]++;
       }
     }
-    
+    Set<Email> children = email.getChildren();
+    int numChildren = children.size();
+    int averageChildrenSize = 0;
+    if (numChildren > 0) {
+      for (Email child: children) {
+        int numWordsInChild = child.getWordCount();
+        if (numWordsInChild == -1) {
+          numWordsInChild = child.getText().split("\\s").length;
+          child.setWordCount(numWordsInChild);
+        }
+        averageChildrenSize += numWordsInChild;
+      }
+      averageChildrenSize /= numChildren;
+    }
+
     //Message length (bytes)
     writer.print(msg.length() + ",");
     // Message length (words)
@@ -128,6 +143,7 @@ public class GetFeature {
       writer.print(bagOfWords[i] + ",");
     }
     // Number of replies this email has
-    writer.println(email.getChildren().size() > 0);
+    writer.print(numChildren + ",");
+    writer.println(averageChildrenSize);
   }
 }

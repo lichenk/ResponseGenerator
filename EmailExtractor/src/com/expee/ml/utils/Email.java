@@ -16,6 +16,14 @@ public class Email {
   private String sender;
   
   private Date date;
+  // wordCount is initialized to -1. It is set when computed in GetFeature to avoid recomputation.
+  // I need this to get the wordCount of an email's children.
+  // The reason why I'm doing this is because:
+  // 1. The main cost in computing wordCount is performing string.split(), but I memoize string.split()
+  // because it will take too much memory.
+  // 2. Only replies need to have wordCount recomputed. This ensure the recomputation only occurs
+  // at most once and only for emails which are replies, which is about 1/10th of the data set.
+  private int wordCount;
   
   public Email(List<String> lines, boolean first) {
     boolean inText = false;
@@ -42,6 +50,7 @@ public class Email {
     }
     
     this.text = textBuf.toString().trim();
+    this.wordCount = -1;
   }
 
   public Set<Email> getChildren() {
@@ -50,6 +59,14 @@ public class Email {
   
   public void addChild(Email child) {
     children.add(child);
+  }
+
+  public int getWordCount() {
+    return this.wordCount;
+  }
+
+  public void setWordCount(int wordCount) {
+    this.wordCount = wordCount;
   }
 
   public void merge(Email other) {
