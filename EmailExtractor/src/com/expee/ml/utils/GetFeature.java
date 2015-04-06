@@ -39,7 +39,7 @@ public class GetFeature {
       "Could", "Would", "Who", "When", "Where", "What", 
       "Why", "How", "Is", "Are", "Will", "May", "Might"));
   private static final Set<String> FORMAL_SET = new HashSet<String>(Arrays.asList(
-      "Yours", "Sincerely", "Sir", "Regards"));
+      "Yours", "Sincerely", "Sir", "Regards", "Madam"));
   
   public static void makeEmailSetFeatures(Set<Email> emails, String output) throws IOException {
     PrintWriter writer = new PrintWriter(new FileWriter(new File(output), true));
@@ -48,14 +48,12 @@ public class GetFeature {
     for (Email email: emails) {
       String msg = email.getText();
       String[] wordArray = msg.split("\\s");
-      for (String word: wordArray) {
+      for (String word : wordArray) {
         String strippedLowerWord = word.replaceAll("[^\\w]","").toLowerCase();
-        if (strippedLowerWord.length() > 0) {
-          if (wordCount.containsKey(strippedLowerWord)) {
-            wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
-          } else {
-            wordCount.put(strippedLowerWord, 1);
-          }
+        if (strippedLowerWord.length() > 0 && wordCount.containsKey(strippedLowerWord)) {
+          wordCount.put(strippedLowerWord, wordCount.get(strippedLowerWord)+1);
+        } else {
+          wordCount.put(strippedLowerWord, 1);
         }
       }
     }
