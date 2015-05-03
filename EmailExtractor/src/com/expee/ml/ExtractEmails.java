@@ -63,15 +63,15 @@ public class ExtractEmails {
     return emailFiles;
   }
 
-public static void getEmailRecursive(File emailFile, ArrayList<File> emailFiles){
-	if (!emailFile.isDirectory()){
-		emailFiles.add(emailFile);
-	} else {
-		for (File subFile : emailFile.listFiles()){
-			getEmailRecursive(subFile,emailFiles);
-		}
-	}
-}
+  public static void getEmailRecursive(File emailFile, List<File> emailFiles){
+	  if (!emailFile.isDirectory()){
+		  emailFiles.add(emailFile);
+	  } else {
+		  for (File subFile : emailFile.listFiles()){
+			  getEmailRecursive(subFile, emailFiles);
+		  }
+	  }
+  }
 
 // TODO(Peijin): This code is buggy. It only goes down 3 levels, instead of recursing.
   public static List<File> getEmailFiles(String dir, int maxUsers) throws IOException {
@@ -91,7 +91,7 @@ public static void getEmailRecursive(File emailFile, ArrayList<File> emailFiles)
           if (emailFile.isHidden()) continue;
           
           if (emailFile.isDirectory()){
-        	  getEmailRecursive(emailFile,emailFiles);
+        	  getEmailRecursive(emailFile, emailFiles);
           } else {
         	  emailFiles.add(emailFile);
           }
