@@ -14,7 +14,13 @@ public class EmailParser {
   }
 
   private static boolean isInvalidLine(String line) {
-    return line.contains("----") && line.contains("Forwarded");
+    return ((line.contains("----") && line.contains("Forwarded")) || 
+    		(line.contains("----") && line.contains("Message from")) ||
+    		(line.contains("----") && line.contains("begin copy of email")) ||
+    		(line.contains("----") && line.contains("end copy of email")) ||
+    		(line.contains("----") && line.contains("End of Unsent Message")) ||
+    		(line.contains("----") && line.contains("Original Text")) ||
+    		(line.contains("----") && line.contains("<") && line.contains(">") && line.contains("wrote:")));
   }
   
   public static ArrayList<Email> parseEmails(File file) throws IOException {
