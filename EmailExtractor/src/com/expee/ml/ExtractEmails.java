@@ -74,6 +74,7 @@ public class ExtractEmails {
   }
 
 // TODO(Peijin): This code is buggy. It only goes down 3 levels, instead of recursing.
+//Corrected for recursion
   public static List<File> getEmailFiles(String dir, int maxUsers) throws IOException {
     List<File> emailFiles = new ArrayList<File>();
     File base = new File(dir);
