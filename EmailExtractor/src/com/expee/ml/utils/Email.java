@@ -18,14 +18,10 @@ public class Email {
   private String to;
   
   private Date date;
-  // wordCount is initialized to -1. It is set when computed in GetFeature to avoid recomputation.
-  // I need this to get the wordCount of an email's children.
-  // The reason why I'm doing this is because:
-  // 1. The main cost in computing wordCount is performing string.split(), but I memoize string.split()
-  // because it will take too much memory.
-  // 2. Only replies need to have wordCount recomputed. This ensure the recomputation only occurs
-  // at most once and only for emails which are replies, which is about 1/10th of the data set.
+  // wordCount is initialized during preprocess stage of GetFeature
   private int wordCount;
+  // Computing themes. Will be initialized during preprocess stage of GetFeature
+  private int[] themes;
   
   public Email(List<String> lines, boolean first) {
     boolean inText = false;
@@ -81,6 +77,14 @@ public class Email {
 
   public String getText() {
     return this.text;
+  }
+
+  public int[] getThemes() {
+    return this.themes;
+  }
+
+  public void setThemes(int[] themes) {
+    this.themes = themes;
   }
 
   public String getSubject() {
