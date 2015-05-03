@@ -63,7 +63,17 @@ public class ExtractEmails {
     return emailFiles;
   }
 
-  // TODO(Peijin): This code is buggy. It only goes down 3 levels, instead of recursing.
+public static void getEmailRecursive(File emailFile, ArrayList<File> emailFiles){
+	if (!emailFile.isDirectory()){
+		emailFiles.add(emailFile);
+	} else {
+		for (File subFile : emailFile.listFiles()){
+			getEmailRecursive(subFile,emailFiles);
+		}
+	}
+}
+
+// TODO(Peijin): This code is buggy. It only goes down 3 levels, instead of recursing.
   public static List<File> getEmailFiles(String dir, int maxUsers) throws IOException {
     List<File> emailFiles = new ArrayList<File>();
     File base = new File(dir);
@@ -74,13 +84,19 @@ public class ExtractEmails {
       
       for (File folder : user.listFiles()) {
         if (!folder.isDirectory()) continue;
+        
         if (INBOX_ONLY && !folder.getName().equals("inbox")) continue;
         
         for (File emailFile : folder.listFiles()) {
-          if (!emailFile.isFile() || emailFile.isHidden()) continue;
-
-          emailFiles.add(emailFile);
+          if (emailFile.isHidden()) continue;
+          
+          if (emailFile.isDirectory()){
+        	  getEmailRecursive(emailFile,emailFiles);
+          } else {
+        	  emailFiles.add(emailFile);
+          }
         }
+        
       }
 
       System.out.println(user.getName() + " " + emailFiles.size());
