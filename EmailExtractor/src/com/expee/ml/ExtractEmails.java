@@ -29,6 +29,7 @@ public class ExtractEmails {
     }
   }
   
+  /** Given a list of files, extracts a set of Emails (basically a graph) **/
   public static Set<Email> extractStructure(List<File> files) throws IOException {
     Map<Email, Email> emails = new HashMap<Email, Email>();
     
@@ -47,10 +48,7 @@ public class ExtractEmails {
     return emails.keySet();
   }
 
-  public static List<File> getEmailFiles(String dir) throws IOException {
-    return getEmailFiles(dir, Integer.MAX_VALUE);
-  }
-
+  /** Gets a list of files in a directory **/
   public static List<File> getLinearEmailFiles(String dir) {
     File base = new File(dir);
     List<File> emailFiles = new ArrayList<File>();
@@ -63,6 +61,11 @@ public class ExtractEmails {
     return emailFiles;
   }
 
+  /** Recursively finds all files in a directory **/
+  public static List<File> getEmailFiles(String dir) throws IOException {
+    return getEmailFiles(dir, Integer.MAX_VALUE);
+  }
+  
   // TODO(Peijin): This code is buggy. It only goes down 3 levels, instead of recursing.
   public static List<File> getEmailFiles(String dir, int maxUsers) throws IOException {
     List<File> emailFiles = new ArrayList<File>();
@@ -71,37 +74,43 @@ public class ExtractEmails {
 
     for (File user : base.listFiles()) {
       if (!user.isDirectory()) continue;
-      
+      if (numUsers == maxUsers) break;
+        
       for (File folder : user.listFiles()) {
         if (!folder.isDirectory()) continue;
         if (INBOX_ONLY && !folder.getName().equals("inbox")) continue;
-        
+          
         for (File emailFile : folder.listFiles()) {
           if (!emailFile.isFile() || emailFile.isHidden()) continue;
-
           emailFiles.add(emailFile);
         }
       }
 
       System.out.println(user.getName() + " " + emailFiles.size());
-      if (++numUsers >= maxUsers) break;
+      numUsers++;
     }
 
     return emailFiles;
   }
 
   public static void main(String[] args) throws Exception {
+    int numUsers = Integer.MAX_VALUE;
+    if (args.length >= 2) {
+      numUsers = new Integer(args[1]);
+    }
+    
     System.out.println("Getting email list");
-    // List<File> emailFiles = getLinearEmailFiles("../testsets/simple");
-    List<File> emailFiles = getEmailFiles(BASE_DIR, 10);
+    // List<File> emailFiles = getLinearEmailFiles("../testsets/simple"); // For testing
+    List<File> emailFiles = getEmailFiles(BASE_DIR, numUsers);
+    
     System.out.println("Extracting email structure");
     Set<Email> emails = extractStructure(emailFiles);
+    
     System.out.println("Making features");
-    if (OLD_FEATURE) {
-      OldGetFeature.makeEmailSetFeatures(emails, OUTPUT);
+    String outputFile = OUTPUT;
+    if (args.length >= 1) {
+      outputFile = args[0];
     }
-    else {
-      GetFeature.makeEmailSetFeatures(emails, OUTPUT);
-    }
+    GetFeature.makeEmailSetFeatures(emails, outputFile);
   }
 }

@@ -82,7 +82,7 @@ public class GetFeature {
       }
     }
     
-    writer.println("Has Reply, Num Replies, Word Length of Reply");
+    writer.println("Has Reply");
     int wordMapSize = wordMap.size();
     for (Email email : emails) {
       GetFeature.printEmailFeatures(wordMap, wordMapSize, writer, email);
@@ -220,10 +220,10 @@ public class GetFeature {
     //   writer.print(bagOfWords[i] + ",");
     // }
     // Did the email have a reply
-    writer.print((numChildren>0) + ",");
+    writer.println((numChildren>0));
     // Number of replies this email has
-    writer.print(numChildren + ",");
+    // writer.print(numChildren + ",");
     // Average children size
-    writer.println(averageChildrenSize);
+    // writer.println(averageChildrenSize);
   }
 }
