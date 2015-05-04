@@ -16,7 +16,7 @@ import com.expee.ml.utils.OldGetFeature;
 public class ExtractEmails {
   private static final String BASE_DIR = "/home/usert/enronsmall";
   private static final String OUTPUT = "EmailData.csv";
-  private static final boolean INBOX_ONLY = false; // Set to true to restrict to "inbox" folders
+  private static final boolean INBOX_ONLY = true; // Set to true to restrict to "inbox" folders
   private static final boolean OLD_FEATURE = false; //Set to true for Bag of Words for email body
 
   private static void addDirectedEdge(Map<Email, Email> emails, Email parent, Email child) {
