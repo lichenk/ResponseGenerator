@@ -10,14 +10,12 @@ B) For each email, outputs a vector of
 5. Number of "formal" words. (like "Sir", "Yours sincerely")
 6. Bag of words, listed in order of the bag of words given.
 7. Number of replies this email has
-
 Other things we can do:
 Metadata features:
 1. If replied to sender earlier
 2. If sender sent email but user ignored.
 3. Sender email address. Internal email, external, from .com?
 4. Many people in CC? Blasted email
-
 */
 package com.expee.ml.utils;
 
