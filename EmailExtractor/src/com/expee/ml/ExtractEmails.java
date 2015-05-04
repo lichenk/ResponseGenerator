@@ -14,7 +14,7 @@ import com.expee.ml.utils.GetFeature;
 import com.expee.ml.utils.OldGetFeature;
 
 public class ExtractEmails {
-  private static final String BASE_DIR = "/home/usert/enronsmall";
+  private static final String BASE_DIR = "/Users/Ananya/Downloads/enron/maildir";
   private static final String OUTPUT = "EmailData.csv";
   private static final boolean INBOX_ONLY = false; // Set to true to restrict to "inbox" folders
   private static final boolean OLD_FEATURE = false; //Set to true for Bag of Words for email body
@@ -62,8 +62,10 @@ public class ExtractEmails {
   }
 
   private static void getEmailRecursive(File emailFile, List<File> emailFiles){
-    if (!emailFile.isDirectory() && !emailFile.isHidden()){
-      emailFiles.add(emailFile);
+    if (!emailFile.isDirectory()){
+      if (!emailFile.isHidden()) {
+        emailFiles.add(emailFile);
+      }
     } else {
       for (File subFile : emailFile.listFiles()){
         getEmailRecursive(subFile, emailFiles);
