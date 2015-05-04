@@ -99,9 +99,9 @@ public class GetFeature {
       }
     }
 
-    writer.print("Has Reply, Num Replies, Word Length of Reply, ");
+    writer.print("Has Reply, Num Replies, Word Length of Reply");
     for (String word : themeList) {
-      writer.print("(Reply theme) " + word + ", ");
+      writer.print(",(Reply theme) " + word);
     }
     writer.println("");
     for (Email email : emails) {
