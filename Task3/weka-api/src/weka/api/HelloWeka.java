@@ -102,7 +102,7 @@ public class HelloWeka {
   /**
    * runs 10fold CV over the training file
    */
-  public void execute(int wantedIndex, PrintWriter writer) throws Exception {
+  public double execute(int wantedIndex, PrintWriter writer) throws Exception {
     // run filter
     m_Filter.setInputFormat(m_Training);
     Instances filtered = Filter.useFilter(m_Training, m_Filter);
@@ -110,16 +110,17 @@ public class HelloWeka {
     filtered.setClassIndex(filtered.numAttributes()-1);
     filteredTest.setClassIndex(filteredTest.numAttributes()-1);
 	String name=filtered.attribute(filtered.numAttributes()-1).name();
-	writer.println("Class name:" + name);
+	//writer.println("Class name:" + name);
     // train classifier on complete file for tree
     m_Classifier.buildClassifier(filtered);
 
     // 10fold CV with seed=1
-    m_Evaluation = new Evaluation(filtered);
-    m_Evaluation.crossValidateModel(m_Classifier, filtered, 10,
-      m_Training.getRandomNumberGenerator(1));
+    //m_Evaluation = new Evaluation(filtered);
+    //m_Evaluation.crossValidateModel(m_Classifier, filtered, 10,
+    //  m_Training.getRandomNumberGenerator(1));
     testEvaluation = new Evaluation(filtered);
     testEvaluation.evaluateModel(m_Classifier, filteredTest);
+    return testEvaluation.pctCorrect();
   }
 
   /**
@@ -175,14 +176,15 @@ public class HelloWeka {
 		options_rm[0] = "-R";                                    // "range"
 	  	int endIndex = dataset.numAttributes() - 1;
 	  	// Remove API is 1-indexed, not 0 indexed
+	  	options_rm[1] = Integer.toString(startIndex-3+1) + "-" + Integer.toString(startIndex-1+1) + ",";
 	  	if (wantedIndex == startIndex) {
-	  		options_rm[1] = Integer.toString(startIndex+1+1) + "-" + Integer.toString(endIndex+1);
+	  		options_rm[1] += Integer.toString(startIndex+1+1) + "-" + Integer.toString(endIndex+1);
 	  	}
 	  	else if (wantedIndex == endIndex) {
-	  		options_rm[1] = Integer.toString(startIndex+1) + "-" + Integer.toString(endIndex-1+1);
+	  		options_rm[1] += Integer.toString(startIndex+1) + "-" + Integer.toString(endIndex-1+1);
 	  	}
 	  	else {
-	  		options_rm[1] = Integer.toString(startIndex+1)+"-"+Integer.toString(wantedIndex-1+1)+","+Integer.toString(wantedIndex+1+1)+"-"+Integer.toString(endIndex+1);
+	  		options_rm[1] += Integer.toString(startIndex+1)+"-"+Integer.toString(wantedIndex-1+1)+","+Integer.toString(wantedIndex+1+1)+"-"+Integer.toString(endIndex+1);
 	  	}
 		Remove remove = new Remove();                         // new instance of filter
 		remove.setOptions(options_rm);                           // set options
@@ -224,14 +226,20 @@ public class HelloWeka {
 		    demo = new HelloWeka();
 		    demo.setClassifier(classifier, options);
 		    int firstThemeIndex = getFirstThemeIndex(dataset);
+		    double ans = 0;
+		    int num = 0;
 		    for (int wantedIndex = firstThemeIndex; wantedIndex < dataset.numAttributes(); wantedIndex++) {
 		    	Filter filter = makeFilter(dataset,firstThemeIndex,wantedIndex);
 		    	demo.setFilter(filter);
 		    	demo.setTraining(dataset);
 		    	demo.setTest(testset);
-		    	demo.execute(wantedIndex,writer);
-		    	writer.println(demo.toString());
+		    	ans += demo.execute(wantedIndex,writer);
+		    	num++;
+		    	//writer.println(demo.toString());
 		    }
+		    ans /= num;
+		    writer.println(classifier + " Accuracy:" + ans);
+		    System.out.println(classifier + " Accuracy:" + ans);
 	    }
  
 	/*String classifier = "weka.classifiers.trees.J48";

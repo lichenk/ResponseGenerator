@@ -15,7 +15,7 @@ import com.expee.ml.utils.OldGetFeature;
 
 public class ExtractEmails {
   //private static final String BASE_DIR = "/Users/Ananya/Downloads/enron/maildir";
-  private static final String BASE_DIR = "/home/usert/enronsmall";
+  private static final String BASE_DIR = "/home/usert/enron/enron_mail_20110402/maildir";
   private static final String OUTPUT = "EmailData.csv";
   private static final String TEST_OUTPUT = "TestData.csv";
   private static final boolean INBOX_ONLY = true; // Set to true to restrict to "inbox" folders

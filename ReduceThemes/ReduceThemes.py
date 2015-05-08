@@ -1,7 +1,7 @@
 import csv
 import nltk
 from nltk.corpus import wordnet as wn
-LIMIT = 20
+LIMIT = 10000000000000
 def is_theme(word): # Is it a theme?
     return word[0].islower()
 
@@ -19,6 +19,7 @@ def getsim(word1, word2):
 
 
 def reduce_synonyms(word_list):
+    return {}
     n = len(word_list)
     weights = []
     for i in xrange(0,n):
