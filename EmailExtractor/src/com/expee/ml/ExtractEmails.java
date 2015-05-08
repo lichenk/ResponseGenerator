@@ -17,6 +17,7 @@ public class ExtractEmails {
   //private static final String BASE_DIR = "/Users/Ananya/Downloads/enron/maildir";
   private static final String BASE_DIR = "/home/usert/enronsmall";
   private static final String OUTPUT = "EmailData.csv";
+  private static final String TEST_OUTPUT = "TestData.csv";
   private static final boolean INBOX_ONLY = true; // Set to true to restrict to "inbox" folders
   private static final boolean OLD_FEATURE = false; //Set to true for Bag of Words for email body
 
@@ -122,6 +123,6 @@ public class ExtractEmails {
     if (args.length >= 1) {
       outputFile = args[0];
     }
-    GetFeature.makeEmailSetFeatures(emails, outputFile);
+    GetFeature.makeEmailSetFeatures(emails, outputFile, TEST_OUTPUT);
   }
 }

@@ -8,6 +8,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 public class Email {
+  private long uid;
   private Set<Email> children;
   
   private String text;
@@ -60,6 +61,7 @@ public class Email {
     
     this.text = textBuf.toString().trim().replaceAll("=20", " ");
     this.wordCount = -1;
+    uid = text.hashCode();
   }
 
   public Set<Email> getChildren() {
@@ -72,6 +74,10 @@ public class Email {
 
   public int getWordCount() {
     return this.wordCount;
+  }
+
+  public long getuid() {
+    return this.uid;
   }
 
   public void setWordCount(int wordCount) {
