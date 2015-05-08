@@ -79,6 +79,22 @@ def make_csv(reduced_dict):
                         value = r[orig_idx[0]]
                     row.append(str(value))
                 wtr.writerow(row)
+    with open("TestData.csv","rb") as source:
+        rdr = csv.reader(source)
+        with open("FinalTest.csv","wb") as result:
+            wtr= csv.writer(result)
+            for r in rdr:
+                row = []
+                if r[final_dict['Has Reply'][0]] == 'false':
+                    continue
+                for field in reduced_list:
+                    orig_idx = final_dict[field]
+                    if (r[orig_idx[0]] == 'true' or r[orig_idx[0]] == 'false'):
+                        value = any([('true' == r[idx]) for idx in orig_idx])
+                    else:
+                        value = r[orig_idx[0]]
+                    row.append(str(value))
+                wtr.writerow(row)
 
 def remove_unary():
     with open("Staged.csv","rb") as source:

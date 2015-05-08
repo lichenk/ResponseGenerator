@@ -39,6 +39,7 @@ import weka.filters.Filter;
 
 public class HelloWeka {
   public static final String INPUT_CSV = "/home/usert/Dropbox/ml/ResponseGenerator/ReduceThemes/Final.csv";
+  public static final String TEST_CSV = "/home/usert/Dropbox/ml/ResponseGenerator/ReduceThemes/FinalTest.csv";
   /** the classifier used internally */
   protected Classifier m_Classifier = null;
 
@@ -47,10 +48,12 @@ public class HelloWeka {
 
   /** the training instances */
   protected Instances m_Training = null;
+  /** the test instances */
+  protected Instances m_Test = null;
 
   /** for evaluating the classifier */
   protected Evaluation m_Evaluation = null;
-
+  protected Evaluation testEvaluation = null;
   /**
    * initializes the demo
    */
@@ -79,12 +82,20 @@ public class HelloWeka {
   }
 
   /**
-   * sets the file to use for training
+   * sets the Instance to use for training
    */
   public void setTraining(Instances trainingSet) throws Exception {
     m_Training = trainingSet;
   }
 
+  /**
+   * sets the Instance to use for training
+   */
+  public void setTest(Instances testSet) throws Exception {
+    m_Test = testSet;
+  }
+
+  
   /**
    * runs 10fold CV over the training file
    */
@@ -92,9 +103,11 @@ public class HelloWeka {
     // run filter
     m_Filter.setInputFormat(m_Training);
     Instances filtered = Filter.useFilter(m_Training, m_Filter);
+    Instances filteredTest = Filter.useFilter(m_Test, m_Filter);
+    filtered.setClassIndex(filtered.numAttributes()-1);
+    filteredTest.setClassIndex(filteredTest.numAttributes()-1);
 	String name=filtered.attribute(filtered.numAttributes()-1).name();
 	System.out.println("Class name:" + name);
-    filtered.setClassIndex(filtered.numAttributes()-1);
     // train classifier on complete file for tree
     m_Classifier.buildClassifier(filtered);
 
@@ -102,6 +115,8 @@ public class HelloWeka {
     m_Evaluation = new Evaluation(filtered);
     m_Evaluation.crossValidateModel(m_Classifier, filtered, 10,
       m_Training.getRandomNumberGenerator(1));
+    testEvaluation = new Evaluation(filtered);
+    testEvaluation.evaluateModel(m_Classifier, filteredTest);
   }
 
   /**
@@ -122,8 +137,8 @@ public class HelloWeka {
       result.append("Filter.......: " + m_Filter.getClass().getName() + "\n");
     }
     result.append("\n");
-
     result.append(m_Classifier.toString() + "\n");
+    result.append("\n10fold Cross Validation Results\n======\n");
     result.append(m_Evaluation.toSummaryString() + "\n");
     try {
       result.append(m_Evaluation.toMatrixString() + "\n");
@@ -135,7 +150,18 @@ public class HelloWeka {
     } catch (Exception e) {
       e.printStackTrace();
     }
-
+    result.append(testEvaluation.toSummaryString("\nTest Set Results\n======\n", false));
+    try {
+        result.append(testEvaluation.toMatrixString() + "\n");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+      try {
+        result.append(testEvaluation.toClassDetailsString() + "\n");
+      } catch (Exception e) {
+        e.printStackTrace();
+      }
+    
     return result.toString();
   }
   public static Filter makeFilter(Instances dataset, int startIndex, int wantedIndex) throws Exception {
@@ -173,6 +199,9 @@ public class HelloWeka {
 	CSVLoader loader = new CSVLoader();
 	loader.setSource(new File(INPUT_CSV));
 	Instances dataset = loader.getDataSet();
+	CSVLoader loaderTest = new CSVLoader();
+	loaderTest.setSource(new File(TEST_CSV));
+	Instances testset = loader.getDataSet();
 	// Set classifier
 	String classifier = "weka.classifiers.trees.J48";
 	String[] options = new String[4];
@@ -186,6 +215,7 @@ public class HelloWeka {
     	Filter filter = makeFilter(dataset,firstThemeIndex,wantedIndex);
     	demo.setFilter(filter);
     	demo.setTraining(dataset);
+    	demo.setTest(testset);
     	demo.execute(wantedIndex);
     	System.out.println(demo.toString());
     }
