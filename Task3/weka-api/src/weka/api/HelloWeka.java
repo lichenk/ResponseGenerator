@@ -28,18 +28,21 @@ import java.io.FileReader;
 import java.util.Vector;
 import weka.filters.unsupervised.attribute.Remove;
 import java.io.File;
-import weka.classifiers.AbstractClassifier;
+//import weka.classifiers.AbstractClassifier;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.core.Instances;
 import weka.core.OptionHandler;
 import weka.core.Utils;
 import weka.filters.Filter;
-
+import java.util.Arrays;
+import java.io.*;
 
 public class HelloWeka {
   public static final String INPUT_CSV = "/home/usert/Dropbox/ml/ResponseGenerator/ReduceThemes/Final.csv";
   public static final String TEST_CSV = "/home/usert/Dropbox/ml/ResponseGenerator/ReduceThemes/FinalTest.csv";
+  public static final String CLASSIFIER_FILE = "/home/usert/Dropbox/ml/ResponseGenerator/Task3/classifier.txt";
+  public static final String OUTPUT_FILE = "results.txt";
   /** the classifier used internally */
   protected Classifier m_Classifier = null;
 
@@ -68,7 +71,7 @@ public class HelloWeka {
    * @param options the options for the classifier
    */
   public void setClassifier(String name, String[] options) throws Exception {
-    m_Classifier = AbstractClassifier.forName(name, options);
+    m_Classifier = Classifier.forName(name, options);
   }
 
   /**
@@ -99,7 +102,7 @@ public class HelloWeka {
   /**
    * runs 10fold CV over the training file
    */
-  public void execute(int wantedIndex) throws Exception {
+  public void execute(int wantedIndex, PrintWriter writer) throws Exception {
     // run filter
     m_Filter.setInputFormat(m_Training);
     Instances filtered = Filter.useFilter(m_Training, m_Filter);
@@ -107,7 +110,7 @@ public class HelloWeka {
     filtered.setClassIndex(filtered.numAttributes()-1);
     filteredTest.setClassIndex(filteredTest.numAttributes()-1);
 	String name=filtered.attribute(filtered.numAttributes()-1).name();
-	System.out.println("Class name:" + name);
+	writer.println("Class name:" + name);
     // train classifier on complete file for tree
     m_Classifier.buildClassifier(filtered);
 
@@ -129,7 +132,9 @@ public class HelloWeka {
     result = new StringBuffer();
     result.append("Weka - Demo\n===========\n\n");
 
-    result.append("Classifier...: " + Utils.toCommandLine(m_Classifier) + "\n");
+    result.append("Classifier...: " 
+            + m_Classifier.getClass().getName() + " " 
+            + Utils.joinOptions(m_Classifier.getOptions()) + "\n");
     if (m_Filter instanceof OptionHandler) {
       result.append("Filter.......: " + m_Filter.getClass().getName() + " "
         + Utils.joinOptions(((OptionHandler) m_Filter).getOptions()) + "\n");
@@ -194,6 +199,7 @@ public class HelloWeka {
 	  }
 	  return answer;
   }
+  
   public static void main(String[] args) throws Exception {
     HelloWeka demo;
 	CSVLoader loader = new CSVLoader();
@@ -201,23 +207,37 @@ public class HelloWeka {
 	Instances dataset = loader.getDataSet();
 	CSVLoader loaderTest = new CSVLoader();
 	loaderTest.setSource(new File(TEST_CSV));
-	Instances testset = loader.getDataSet();
+	Instances testset = loaderTest.getDataSet();
 	// Set classifier
-	String classifier = "weka.classifiers.trees.J48";
+	PrintWriter writer = new PrintWriter(OUTPUT_FILE, "UTF-8");
+	BufferedReader br = new BufferedReader(new FileReader(CLASSIFIER_FILE));
+	    String line;
+	    while ((line = br.readLine()) != null) {
+	       // process the line.
+			String[] classOptions = line.split("\\s+");
+			String classifier = classOptions[0];
+			String[] options = new String[classOptions.length - 1];
+			for (int i = 0; i < (classOptions.length - 1); i++) {
+				options[i] = classOptions[i+1];
+			}
+		    // run
+		    demo = new HelloWeka();
+		    demo.setClassifier(classifier, options);
+		    int firstThemeIndex = getFirstThemeIndex(dataset);
+		    for (int wantedIndex = firstThemeIndex; wantedIndex < dataset.numAttributes(); wantedIndex++) {
+		    	Filter filter = makeFilter(dataset,firstThemeIndex,wantedIndex);
+		    	demo.setFilter(filter);
+		    	demo.setTraining(dataset);
+		    	demo.setTest(testset);
+		    	demo.execute(wantedIndex,writer);
+		    	writer.println(demo.toString());
+		    }
+	    }
+ 
+	/*String classifier = "weka.classifiers.trees.J48";
 	String[] options = new String[4];
 	options[0] = "-C"; options[1] = "0.11";
-	options[2] = "-M"; options[3] = "3";
-    // run
-    demo = new HelloWeka();
-    demo.setClassifier(classifier, options);
-    int firstThemeIndex = getFirstThemeIndex(dataset);
-    for (int wantedIndex = firstThemeIndex; wantedIndex < dataset.numAttributes(); wantedIndex++) {
-    	Filter filter = makeFilter(dataset,firstThemeIndex,wantedIndex);
-    	demo.setFilter(filter);
-    	demo.setTraining(dataset);
-    	demo.setTest(testset);
-    	demo.execute(wantedIndex);
-    	System.out.println(demo.toString());
-    }
+	options[2] = "-M"; options[3] = "3";*/
+
   }
 }
