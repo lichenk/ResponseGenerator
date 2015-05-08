@@ -65,7 +65,7 @@ def make_csv(reduced_dict):
     reduced_list = [field for field in fieldnames if field not in reduced_dict]
     with open("EmailData.csv","rb") as source:
         rdr= csv.reader(source)
-        with open("Final.csv","wb") as result:
+        with open("Staged.csv","wb") as result:
             wtr= csv.writer(result)
             for r in rdr:
                 row = []
@@ -80,6 +80,30 @@ def make_csv(reduced_dict):
                     row.append(str(value))
                 wtr.writerow(row)
 
+def remove_unary():
+    with open("Staged.csv","rb") as source:
+        fieldnames = source.readline().split(',')
+    hasFalse = [False] * len(fieldnames)
+    hasTrue = [False] * len(fieldnames)
+    with open("Staged.csv","rb") as source:
+        rdr= csv.reader(source)
+        for r in rdr:
+            for (idx, val) in enumerate(r):
+                hasFalse[idx] = hasFalse[idx] or (val == 'False')
+                hasTrue[idx] = hasTrue[idx] or (val == 'True')
+    keepidx = []
+    for idx, name in enumerate(fieldnames):
+        if ("(Reply theme) " not in name) or (hasFalse[idx] and hasTrue[idx]):
+            keepidx.append(idx)
+        else:
+            print "Excluded:", name, hasFalse[idx], hasTrue[idx]
+    with open("Staged.csv","rb") as source:
+        rdr= csv.reader(source)
+        with open("Final.csv","wb") as result:
+            wtr= csv.writer(result)
+            for r in rdr:
+                row = [v for (i,v) in enumerate(r) if i in keepidx]
+                wtr.writerow(row)
 
 
 def main():
@@ -89,6 +113,7 @@ def main():
         noun_list = [word for word in theme_list if is_noun(word)]
         reduced_dict = reduce_synonyms(noun_list)
     make_csv(reduced_dict)
+    remove_unary()
 def init():
     nltk.download('maxent_treebank_pos_tagger')
     nltk.download('punkt')
