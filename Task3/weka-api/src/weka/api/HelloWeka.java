@@ -17,7 +17,7 @@
 /*
  *    WekaDemo example.
  *    Copyright (C) 2009 University of Waikato, Hamilton, New Zealand
- *    Modified for email classification
+ *    Modified for email classification by 10-601 team members for (Email Reply Assistant)
  *
  */
 
