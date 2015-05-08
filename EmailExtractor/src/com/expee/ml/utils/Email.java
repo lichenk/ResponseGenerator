@@ -10,7 +10,7 @@ import java.util.Set;
 public class Email {
   private long uid;
   private Set<Email> children;
-  
+  private boolean is_child;  
   private String text;
   private String subject;
   
@@ -62,6 +62,7 @@ public class Email {
     this.text = textBuf.toString().trim().replaceAll("=20", " ");
     this.wordCount = -1;
     uid = text.hashCode();
+    is_child = false;
   }
 
   public Set<Email> getChildren() {
@@ -69,6 +70,7 @@ public class Email {
   }
   
   public void addChild(Email child) {
+    child.is_child = true;
     children.add(child);
   }
 
@@ -86,6 +88,10 @@ public class Email {
 
   public void merge(Email other) {
     children.addAll(other.getChildren());
+  }
+
+  public boolean getIsChild() {
+    return this.is_child;
   }
 
   public String getText() {

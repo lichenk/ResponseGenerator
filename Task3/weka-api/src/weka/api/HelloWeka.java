@@ -27,6 +27,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.Vector;
 import weka.filters.unsupervised.attribute.Remove;
+import weka.filters.supervised.instance.Resample;
 import java.io.File;
 //import weka.classifiers.AbstractClassifier;
 import weka.classifiers.Classifier;
@@ -109,16 +110,23 @@ public class HelloWeka {
     Instances filteredTest = Filter.useFilter(m_Test, m_Filter);
     filtered.setClassIndex(filtered.numAttributes()-1);
     filteredTest.setClassIndex(filteredTest.numAttributes()-1);
-	String name=filtered.attribute(filtered.numAttributes()-1).name();
-	//writer.println("Class name:" + name);
+	Resample resample = new Resample();                         // new instance of filter
+	String[] options = new String[2];
+	options[0] = "-B"; options[1] = "0.5";
+	resample.setOptions(options);                           // set options
+	resample.setInputFormat(filtered);                          // inform filter about dataset **AFTER** setting options
+    Instances resampled = Filter.useFilter(filtered, resample);
+	String name=resampled.attribute(resampled.numAttributes()-1).name();
+	System.out.println("Class name:" + name);
+	writer.println("Class name:" + name);
     // train classifier on complete file for tree
-    m_Classifier.buildClassifier(filtered);
+    m_Classifier.buildClassifier(resampled);
 
     // 10fold CV with seed=1
     //m_Evaluation = new Evaluation(filtered);
     //m_Evaluation.crossValidateModel(m_Classifier, filtered, 10,
     //  m_Training.getRandomNumberGenerator(1));
-    testEvaluation = new Evaluation(filtered);
+    testEvaluation = new Evaluation(resampled);
     testEvaluation.evaluateModel(m_Classifier, filteredTest);
     return testEvaluation.pctCorrect();
   }
@@ -144,6 +152,7 @@ public class HelloWeka {
     }
     result.append("\n");
     result.append(m_Classifier.toString() + "\n");
+    /*
     result.append("\n10fold Cross Validation Results\n======\n");
     result.append(m_Evaluation.toSummaryString() + "\n");
     try {
@@ -156,6 +165,7 @@ public class HelloWeka {
     } catch (Exception e) {
       e.printStackTrace();
     }
+    */
     result.append(testEvaluation.toSummaryString("\nTest Set Results\n======\n", false));
     try {
         result.append(testEvaluation.toMatrixString() + "\n");
@@ -235,7 +245,8 @@ public class HelloWeka {
 		    	demo.setTest(testset);
 		    	ans += demo.execute(wantedIndex,writer);
 		    	num++;
-		    	//writer.println(demo.toString());
+		    	writer.println(demo.toString());
+		    	System.out.println(demo.toString());
 		    }
 		    ans /= num;
 		    writer.println(classifier + " Accuracy:" + ans);
