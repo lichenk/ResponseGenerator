@@ -50,6 +50,8 @@ public class GetFeature {
       "follow up", "let me know", "let us know", "feel free", "help us", "get back"};
   private static final Set<String> STOPWORDS_SET = new HashSet<String>(Arrays.asList(
   "a", "able", "about", "above", "abst", "accordance", "according", "accordingly", "across", "act", "actually", "added", "adj", "affected", "affecting", "affects", "after", "afterwards", "again", "against", "ah", "all", "almost", "alone", "along", "already", "also", "although", "always", "am", "among", "amongst", "an", "and", "announce", "another", "any", "anybody", "anyhow", "anymore", "anyone", "anything", "anyway", "anyways", "anywhere", "apparently", "approximately", "are", "aren", "arent", "arise", "around", "as", "aside", "ask", "asking", "at", "auth", "available", "away", "awfully", "b", "back", "be", "became", "because", "become", "becomes", "becoming", "been", "before", "beforehand", "begin", "beginning", "beginnings", "begins", "behind", "being", "believe", "below", "beside", "besides", "between", "beyond", "biol", "both", "brief", "briefly", "but", "by", "c", "ca", "came", "can", "cannot", "cant", "cause", "causes", "certain", "certainly", "co", "com", "come", "comes", "contain", "containing", "contains", "could", "couldnt", "d", "date", "did", "didnt", "different", "do", "does", "doesnt", "doing", "done", "dont", "down", "downwards", "due", "during", "e", "each", "ed", "edu", "effect", "eg", "eight", "eighty", "either", "else", "elsewhere", "end", "ending", "enough", "especially", "et", "et-al", "etc", "even", "ever", "every", "everybody", "everyone", "everything", "everywhere", "ex", "except", "f", "far", "few", "ff", "fifth", "first", "five", "fix", "followed", "following", "follows", "for", "former", "formerly", "forth", "found", "four", "from", "further", "furthermore", "g", "gave", "get", "gets", "getting", "give", "given", "gives", "giving", "go", "goes", "gone", "got", "gotten", "h", "had", "happens", "hardly", "has", "hasnt", "have", "havent", "having", "he", "hed", "hence", "her", "here", "hereafter", "hereby", "herein", "heres", "hereupon", "hers", "herself", "hes", "hi", "hid", "him", "himself", "his", "hither", "home", "how", "howbeit", "however", "hundred", "i", "id", "ie", "if", "ill", "im", "immediate", "immediately", "importance", "important", "in", "inc", "indeed", "index", "information", "instead", "into", "invention", "inward", "is", "isnt", "it", "itd", "itll", "its", "itself", "ive", "j", "just", "k", "keep", "keeps", "kept", "kg", "km", "know", "known", "knows", "l", "largely", "last", "lately", "later", "latter", "latterly", "least", "less", "lest", "let", "lets", "like", "liked", "likely", "line", "little", "ll", "look", "looking", "looks", "ltd", "m", "made", "mainly", "make", "makes", "many", "may", "maybe", "me", "mean", "means", "meantime", "meanwhile", "merely", "mg", "might", "million", "miss", "ml", "more", "moreover", "most", "mostly", "mr", "mrs", "much", "mug", "must", "my", "myself", "n", "na", "name", "namely", "nay", "nd", "near", "nearly", "necessarily", "necessary", "need", "needs", "neither", "never", "nevertheless", "new", "next", "nine", "ninety", "no", "nobody", "non", "none", "nonetheless", "noone", "nor", "normally", "nos", "not", "noted", "nothing", "now", "nowhere", "o", "obtain", "obtained", "obviously", "of", "off", "often", "oh", "ok", "okay", "old", "omitted", "on", "once", "one", "ones", "only", "onto", "or", "ord", "other", "others", "otherwise", "ought", "our", "ours", "ourselves", "out", "outside", "over", "overall", "owing", "own", "p", "page", "pages", "part", "particular", "particularly", "past", "per", "perhaps", "placed", "please", "plus", "poorly", "possible", "possibly", "potentially", "pp", "predominantly", "present", "previously", "primarily", "probably", "promptly", "proud", "provides", "put", "q", "que", "quickly", "quite", "qv", "r", "ran", "rather", "rd", "re", "readily", "really", "recent", "recently", "ref", "refs", "regarding", "regardless", "regards", "related", "relatively", "research", "respectively", "resulted", "resulting", "results", "right", "run", "s", "said", "same", "saw", "say", "saying", "says", "sec", "section", "see", "seeing", "seem", "seemed", "seeming", "seems", "seen", "self", "selves", "sent", "seven", "several", "shall", "she", "shed", "shell", "shes", "should", "shouldnt", "show", "showed", "shown", "showns", "shows", "significant", "significantly", "similar", "similarly", "since", "six", "slightly", "so", "some", "somebody", "somehow", "someone", "somethan", "something", "sometime", "sometimes", "somewhat", "somewhere", "soon", "sorry", "specifically", "specified", "specify", "specifying", "still", "stop", "strongly", "sub", "substantially", "successfully", "such", "sufficiently", "suggest", "sup", "sure","which","while","andor","making","within","turn","want","these","there","unless","week","their","long","amount","include","very","today","well","were","without","days","currently","full","they","them","then","includes","than","feel","dear","what","when","who","why","where","how","thanks","with","that","would","those","through"));
+  private static final Set<String> SPAM_SET = new HashSet<String>(Arrays.asList(
+      "free", "Ad", "$", "$$", "$$$", "gift", "mortgage", "save", "aging", "marketing", "credit", "refund", "sample", "trial", "ad", "viagra"));
   public static void makeEmailSetFeatures(Set<Email> emails, String output) throws IOException {
     PrintWriter writer = new PrintWriter(new File(output));
     
@@ -78,7 +80,7 @@ public class GetFeature {
 
     writer.print("Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,");
     writer.print("Num Paragraphs,Paragraph Density,Num Recipients,Is Sender Enron,");
-    writer.print("Num Meeting Words,Num Replyrelated words,Num Trigger Phrases,");
+    writer.print("Num Meeting Words,Num Replyrelated words, Num Spam words, Num Trigger Phrases, numXto, number times recipient mentioned");
 
     int minThemeCount = (emails.size() * MIN_THEME_PERCENT) / 100;
     int maxThemeCount = (emails.size() * MAX_THEME_PERCENT) / 100;
@@ -145,6 +147,16 @@ public class GetFeature {
       numRecipients = to.split("\\w@\\w").length - 1;
     }
 
+    String xto = email.getXTo();
+    String[] xtoArray = xto.split("\\s+");
+    Set<String> toNamesSet = new HashSet<String>();
+    for (String s : xtoArray) {
+      if (s.length() > 1) {
+        toNamesSet.add(s.toLowerCase().replaceAll("[^a-zA-Z]", ""));
+      }
+    }
+    int numXto = toNamesSet.size();
+
     int isEnron = 0;
     String sender = email.getSender();
     if (sender != null && sender.toLowerCase().contains("@enron")) {
@@ -177,6 +189,8 @@ public class GetFeature {
     int numFormalWords = 0;
     int numMeetingWords = 0;
     int numReplyWords = 0;
+    int numSpamWords = 0;
+    int numToNameWords = 0;
     
     for (String word : wordArray) {
       String strippedWord = word.replaceAll("[^\\w]","");
@@ -196,6 +210,12 @@ public class GetFeature {
       }
       if (REPLY_SET.contains(strippedLowerWord)) {
         numReplyWords++;
+      }
+      if (SPAM_SET.contains(strippedLowerWord)) {
+        numSpamWords++;
+      }
+      if (toNamesSet.contains(strippedLowerWord)) {
+        numToNameWords++;
       }
     }
     String msglower = msg.toLowerCase();
@@ -250,8 +270,14 @@ public class GetFeature {
     writer.print(Math.log(numMeetingWords+1) + ",");
     // Reply-related words
     writer.print(Math.log(numReplyWords+1) + ",");
+    // Spam-related words
+    writer.print(Math.log(numSpamWords+1) + ",");
     // Number of trigger phrases
     writer.print(Math.log(numPhrases+1) + ",");
+    // Num X-To recipients
+    writer.print(Math.log(numXto+1) + ",");
+    // Number of words in email that match recipient list
+    writer.print(Math.log(numToNameWords+1) + ",");
     // Bag of words for subject
     for (int i = 0; i < themes.length; i++) {
       writer.print((themes[i]>0) + ",");

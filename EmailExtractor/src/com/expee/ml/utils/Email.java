@@ -16,6 +16,7 @@ public class Email {
   private String sender;
 
   private String to;
+  private String xto;
   
   private Date date;
   // wordCount is initialized during preprocess stage of GetFeature
@@ -27,6 +28,7 @@ public class Email {
     boolean inText = false;
     boolean hitSubject = false;
     this.children = new HashSet<Email>();
+    this.xto = "";
     
     StringBuffer textBuf = new StringBuffer();
     for (String line : lines) {
@@ -42,6 +44,11 @@ public class Email {
         this.subject = line.substring(line.indexOf("Subject:") + "Subject:".length()).trim();
         hitSubject = true;
       }
+
+      if (line.contains("X-To:")) {
+        this.xto = line.substring(line.indexOf("X-To:") + "X-To:".length()).trim();
+      }
+
       if (hitSubject && !line.contains(":")) {
         inText = true;
       }
@@ -97,6 +104,10 @@ public class Email {
 
   public String getTo() {
     return this.to;
+  }
+
+  public String getXTo() {
+    return this.xto;
   }
 
   private int nullCode(Object o) {
