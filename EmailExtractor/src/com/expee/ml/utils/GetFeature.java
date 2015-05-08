@@ -81,7 +81,7 @@ public class GetFeature {
     String header = "";
     header += "Byte Length,Word Length,Num Question,Num Question Words,Num Formal Words,";
     header += "Num Paragraphs,Paragraph Density,Num Recipients,Is Sender Enron,";
-    header += "Num Meeting Words,Num Replyrelated words, Num Spam words, Num Trigger Phrases, numXto, number times recipient mentioned";
+    header += "Num Meeting Words,Num Replyrelated words, Num Spam words, Num Trigger Phrases, NumXto, Number times recipient mentioned, ";
 
     int minThemeCount = (emails.size() * MIN_THEME_PERCENT) / 100;
     int maxThemeCount = (emails.size() * MAX_THEME_PERCENT) / 100;
