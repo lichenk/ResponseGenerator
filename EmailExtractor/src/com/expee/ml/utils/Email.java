@@ -24,6 +24,10 @@ public class Email {
   private int wordCount;
   // Computing themes. Will be initialized during preprocess stage of GetFeature
   private int[] themes;
+  // bag of words count is initialized during preprocess stage of GetFeature
+  private int bowCount;
+  // Computing bag of words. Will be initialized during preprocess stage of GetFeature
+  private int[] bow;
   
   public Email(List<String> lines, boolean first) {
     boolean inText = false;
@@ -104,6 +108,14 @@ public class Email {
 
   public void setThemes(int[] themes) {
     this.themes = themes;
+  }
+
+  public int[] getBow() {
+    return this.bow;
+  }
+
+  public void setBow(int[] bow) {
+    this.bow = bow;
   }
 
   public String getSubject() {

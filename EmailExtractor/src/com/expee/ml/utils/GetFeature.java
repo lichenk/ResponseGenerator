@@ -34,12 +34,14 @@ import java.util.ArrayList;
 import java.util.Iterator;
 public class GetFeature {
   private static final boolean PRINT_PARENTS_ONLY = true;
+  private static final int MIN_BOW_PERCENT = 1;
+  private static final int MAX_BOW_PERCENT = 50;
   private static final int MIN_THEME_PERCENT = 1;
   private static final int MAX_THEME_PERCENT = 10;
   private static final int MIN_BOW_PERCENT = 5;
   private static final int MAX_BOW_PERCENT = 15;
   private static final int MIN_COUNT = 200;
-  private static final int MINWORDLEN = 3;
+  private static final int MINWORDLEN = 2;
   private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
       "Could", "Would", "Who", "When", "Where", "What", 
       "Why", "How", "Is", "Are", "Will", "May", "Might"));
@@ -93,6 +95,7 @@ public class GetFeature {
 
     int minThemeCount = (numEmailWhichAreChild * MIN_THEME_PERCENT) / 100;
     int maxThemeCount = (numEmailWhichAreChild * MAX_THEME_PERCENT) / 100;
+    System.out.println(maxThemeCount);
     List<String> themeList = new ArrayList<String>();
     int idx = 0;
     Map<String, Integer> themeMap = new HashMap<String, Integer>();
@@ -100,10 +103,10 @@ public class GetFeature {
     for (Entry<String, Integer> entry : wordEmailCount.entrySet()) {
       if (entry.getValue() >= minThemeCount && entry.getValue() <= maxThemeCount) {
         String word = entry.getKey();
-        System.out.println(word);
-        if (!(STOPWORDS_SET.contains(word))) {
+        // System.out.println(word);
+        if (!(STOPWORDS_SET.contains(word)) && word.length() > 3) {
           themeList.add(word);
-          header += (word + ",");
+          // header += ("(Theme)" + word + ",");
           themeMap.put(word, idx);
           bowMap.put(word,idx);
           idx++;
@@ -111,29 +114,50 @@ public class GetFeature {
       }
     }
 
+    int minBowCount = (numEmailWhichAreChild * MIN_BOW_PERCENT) / 100;
+    int maxBowCount = (numEmailWhichAreChild * MAX_BOW_PERCENT) / 100;
+    System.out.println(maxBowCount);
+    List<String> bowList = new ArrayList<String>();
+    idx = 0;
+    Map<String, Integer> bowMap = new HashMap<String, Integer>();
+    for (Entry<String, Integer> entry : wordEmailCount.entrySet()) {
+      if (entry.getValue() >= minBowCount && entry.getValue() <= maxBowCount) {
+        String word = entry.getKey();
+        // System.out.println(word);
+        if (!(STOPWORDS_SET.contains(word))) {
+          bowList.add(word);
+          header += ("(BOW) " + word + ",");
+          bowMap.put(word, idx);
+          idx++;
+        }
+      }
+    }
+    System.out.println(themeMap.size() + " " + bowMap.size());
+
     header += ("Has Reply, Num Replies, Word Length of Reply");
     for (String word : themeList) {
       header += (",(Reply theme) " + word);
     }
+    // System.out.println(header);
     writer.println(header);
     writerTest.println(header);
     for (Email email : emails) {
-      GetFeature.preprocessEmail(themeMap, email);
+      GetFeature.preprocessEmail(themeMap, bowMap, email);
     }
     for (Email email : emails) {
-      GetFeature.printEmailFeatures(themeMap, writer, email, true);
+      GetFeature.printEmailFeatures(writer, email, true);
     }
     writer.flush();
     writer.close();
     for (Email email : emails) {
-      GetFeature.printEmailFeatures(themeMap, writerTest, email, false);
+      GetFeature.printEmailFeatures(writerTest, email, false);
     }
     writerTest.flush();
     writerTest.close();
   }
 
   public static void preprocessEmail(
-    Map<String, Integer> themeMap, Email email)  throws IOException {
+    Map<String, Integer> themeMap, Map<String, Integer> bowMap, Email email)  throws IOException {
     int themeMapSize = themeMap.size();
     int[] themes = email.getThemes();
     themes = new int[themeMapSize];
@@ -154,6 +178,25 @@ public class GetFeature {
     email.setThemes(themes);
     int numWords = email.getText().split("\\s").length;
     email.setWordCount(numWords);
+
+    int bowMapSize = bowMap.size();
+    int[] bows = email.getBow();
+    bows = new int[bowMapSize];
+    for (int i = 0; i < bowMapSize; i++) {
+      bows[i] = 0;
+    }
+
+    text = email.getText();
+    if (text != null) {
+      String[] textWordArray = text.split("\\s");
+      for (String word : textWordArray) {
+        String strippedLowerWord = word.replaceAll("[^a-zA-Z]","").toLowerCase();
+        if (bowMap.containsKey(strippedLowerWord)) {
+          bows[bowMap.get(strippedLowerWord)]++;
+        }
+      }
+    }
+    email.setBow(bows);
   }
   
   public static boolean purge(long uid, boolean isTrain) {
@@ -166,7 +209,7 @@ public class GetFeature {
   }
 
   public static void printEmailFeatures(
-      Map<String, Integer> themeMap, PrintWriter writer, Email email, boolean is_training)  throws IOException {
+      PrintWriter writer, Email email, boolean is_training)  throws IOException {
     if (purge(email.getuid(), is_training)) {
       return;
     }
@@ -318,9 +361,14 @@ public class GetFeature {
     writer.print(Math.log(numXto+1) + ",");
     // Number of words in email that match recipient list
     writer.print(Math.log(numToNameWords+1) + ",");
-    // Bag of words for subject
-    for (int i = 0; i < themes.length; i++) {
-      writer.print((themes[i]>0) + ",");
+    // // Bag of words for themes
+    // for (int i = 0; i < themes.length; i++) {
+    //   writer.print((themes[i]>0) + ",");
+    // }
+    // Bag of words for words
+    int[] bows = email.getBow();
+    for (int i = 0; i < bows.length; i++) {
+      writer.print((bows[i]>0) + ",");
     }
     //Did the email have a reply
     writer.print((numChildren>0) + ",");
