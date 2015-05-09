@@ -25,7 +25,7 @@ package weka.api;
 import weka.core.converters.CSVLoader;
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.util.Vector;
+import java.util.*;
 import weka.filters.unsupervised.attribute.Remove;
 import weka.filters.supervised.instance.Resample;
 import java.io.File;
@@ -33,11 +33,28 @@ import java.io.File;
 import weka.classifiers.Classifier;
 import weka.classifiers.Evaluation;
 import weka.core.Instances;
+import weka.core.Instance;
 import weka.core.OptionHandler;
 import weka.core.Utils;
 import weka.filters.Filter;
 import java.util.Arrays;
 import java.io.*;
+
+class MyEntity{
+	double p;
+	int idx;
+    public MyEntity(double p, int idx){
+        this.p = p;
+        this.idx = idx;
+    }
+}
+class MyComparator implements Comparator<MyEntity>{
+	  public int compare(MyEntity p1, MyEntity p2){
+	        if (p1.p < p2.p) return 1;
+	        if (p1.p > p2.p) return -1;
+	        return 0;
+	  }
+}
 
 public class HelloWeka {
   public static final String INPUT_CSV = "/home/usert/Dropbox/ml/ResponseGenerator/ReduceThemes/Final.csv";
@@ -103,7 +120,7 @@ public class HelloWeka {
   /**
    * runs 10fold CV over the training file
    */
-  public double execute(int wantedIndex, PrintWriter writer) throws Exception {
+  public double execute(int wantedIndex, PrintWriter writer, double[][] wordProb, int wordIndex) throws Exception {
     // run filter
     m_Filter.setInputFormat(m_Training);
     Instances filtered = Filter.useFilter(m_Training, m_Filter);
@@ -117,7 +134,7 @@ public class HelloWeka {
 	resample.setInputFormat(filtered);                          // inform filter about dataset **AFTER** setting options
     Instances resampled = Filter.useFilter(filtered, resample);
 	String name=resampled.attribute(resampled.numAttributes()-1).name();
-	System.out.println("Class name:" + name);
+	//System.out.println("Class name:" + name);
 	writer.println("Class name:" + name);
     // train classifier on complete file for tree
     m_Classifier.buildClassifier(resampled);
@@ -128,6 +145,13 @@ public class HelloWeka {
     //  m_Training.getRandomNumberGenerator(1));
     testEvaluation = new Evaluation(resampled);
     testEvaluation.evaluateModel(m_Classifier, filteredTest);
+    int numInst = filteredTest.numInstances();
+    
+    for (int i = 0; i < numInst; i++) {
+    	Instance testInst = filteredTest.instance(i);
+    	double distr[] = m_Classifier.distributionForInstance(testInst);
+    	wordProb[i][wordIndex] = distr[1];
+    }
     return testEvaluation.pctCorrect();
   }
 
@@ -238,19 +262,73 @@ public class HelloWeka {
 		    int firstThemeIndex = getFirstThemeIndex(dataset);
 		    double ans = 0;
 		    int num = 0;
+		    int numWords = dataset.numAttributes() -firstThemeIndex;
+		    int numTestInst = testset.numInstances();
+		    double[][] wordProb = new double[numTestInst][numWords];
+		    int wordIndex = 0;
 		    for (int wantedIndex = firstThemeIndex; wantedIndex < dataset.numAttributes(); wantedIndex++) {
 		    	Filter filter = makeFilter(dataset,firstThemeIndex,wantedIndex);
 		    	demo.setFilter(filter);
 		    	demo.setTraining(dataset);
 		    	demo.setTest(testset);
-		    	ans += demo.execute(wantedIndex,writer);
+		    	ans += demo.execute(wantedIndex,writer,wordProb, wordIndex);
 		    	num++;
 		    	writer.println(demo.toString());
-		    	System.out.println(demo.toString());
+		    	wordIndex++;
+		    	//System.out.println(demo.toString());
 		    }
+		    double pointAvg = 0;
+		    int ignore = 0;
+		    List<Double> awards = new ArrayList<Double>();
+		    for (int i = 0; i < numTestInst; i++) {
+		    	List<MyEntity> list = new ArrayList<MyEntity>();
+		    	int total = 0;
+		    	for (int j = 0; j < numWords; j++) {
+		    		list.add(new MyEntity(wordProb[i][j],j));
+		    		if (testset.instance(i).stringValue(j+firstThemeIndex).equals("True")) {
+		    			total++;
+		    		}
+		    	}
+		    	Collections.sort(list,new MyComparator());
+		    	int k = 0;
+		    	int point = 0;
+		    	for (MyEntity m : list) {
+		    		if (k > 10) break;
+		    		int themeIndex = m.idx + firstThemeIndex;
+		    		//System.out.println(testset.attribute(themeIndex).name());
+		    		//System.out.println(testset.instance(i).stringValue(themeIndex));
+		    		if (testset.instance(i).stringValue(themeIndex).equals("True")) {
+		    			point++;
+		    		}
+		    		k++;
+		    	}
+		    	double award = 0;
+		    	if (0 == total) {
+		    		ignore++;
+		    	}
+		    	else if (total < 10) {
+		    		award = (double)point/total;
+		    		awards.add(award);
+		    	}
+		    	else {
+		    		award = (double)point/10;
+		    		awards.add(award);
+		    	}
+		    	pointAvg += award;
+		    }
+		    // System.out.print("Num words:");
+		    // System.out.println(numWords);
+		    // System.out.println(classifier + " Point cumulative:" + pointAvg);
+		    pointAvg /= (numTestInst-ignore);
+		    double pointVariance = 0;
+		    for (Double x : awards) {
+		    	pointVariance += (x-pointAvg)*(x-pointAvg);
+		    }
+		    pointVariance /= awards.size();
 		    ans /= num;
 		    writer.println(classifier + " Accuracy:" + ans);
-		    System.out.println(classifier + " Accuracy:" + ans);
+		    //System.out.println(classifier + " Accuracy:" + ans);
+		    System.out.println(classifier + " Point average:" + pointAvg + " Variance:" + pointVariance + " Num Test Cases:" + awards.size());
 	    }
  
 	/*String classifier = "weka.classifiers.trees.J48";

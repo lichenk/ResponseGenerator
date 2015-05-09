@@ -33,8 +33,11 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
 public class GetFeature {
+  private static final boolean PRINT_PARENTS_ONLY = true;
   private static final int MIN_THEME_PERCENT = 1;
   private static final int MAX_THEME_PERCENT = 10;
+  private static final int MIN_BOW_PERCENT = 5;
+  private static final int MAX_BOW_PERCENT = 15;
   private static final int MIN_COUNT = 200;
   private static final int MINWORDLEN = 3;
   private static final Set<String> QUESTION_SET = new HashSet<String>(Arrays.asList(
@@ -93,6 +96,7 @@ public class GetFeature {
     List<String> themeList = new ArrayList<String>();
     int idx = 0;
     Map<String, Integer> themeMap = new HashMap<String, Integer>();
+    Map<String, Integer> bowMap = new HashMap<String, Integer>();
     for (Entry<String, Integer> entry : wordEmailCount.entrySet()) {
       if (entry.getValue() >= minThemeCount && entry.getValue() <= maxThemeCount) {
         String word = entry.getKey();
@@ -101,6 +105,7 @@ public class GetFeature {
           themeList.add(word);
           header += (word + ",");
           themeMap.put(word, idx);
+          bowMap.put(word,idx);
           idx++;
         }
       }
@@ -165,6 +170,19 @@ public class GetFeature {
     if (purge(email.getuid(), is_training)) {
       return;
     }
+    Set<Email> children = email.getChildren();
+    for (Iterator<Email> iterator = children.iterator(); iterator.hasNext();) {
+        Email emailc = iterator.next();
+        if ((purge(emailc.getuid(), is_training))) {
+            // Remove the current element from the iterator and the list.
+            iterator.remove();
+        }
+    }
+    int numChildren = children.size();
+    if (numChildren == 0 && PRINT_PARENTS_ONLY) {
+      return;
+    }
+
     String to = email.getTo();
     int numRecipients = 1;
     if (to != null) {
@@ -249,15 +267,6 @@ public class GetFeature {
         numPhrases++;
       }
     }
-    Set<Email> children = email.getChildren();
-    for (Iterator<Email> iterator = children.iterator(); iterator.hasNext();) {
-        Email emailc = iterator.next();
-        if ((purge(emailc.getuid(), is_training))) {
-            // Remove the current element from the iterator and the list.
-            iterator.remove();
-        }
-    }
-    int numChildren = children.size();
     int averageChildrenSize = 0;
     if (numChildren > 0) {
       for (Email child: children) {
