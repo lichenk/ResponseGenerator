@@ -3,7 +3,7 @@ Machine learning classifiers for email response prediction and generation on the
 
 10601 Machine Learning Project
 
-Ananya Kumar, Bojian Han, Li Chen Koh, Peijin Zhang
+Ananya Kumar, Bojian Han, Li Chen Koh (as usert), Peijin Zhang
 
 Compile: 
 Go to src, and run "javac com/expee/ml/ExtractEmails.java"
